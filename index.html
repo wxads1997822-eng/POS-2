@@ -818,9 +818,6 @@
 
     let cart = [];
     let historyTab = "active";
-    let pendingCheckoutAfterPrint = false;
-    let pendingPrintedSnapshot = null;
-    let pendingPrintedTime = null;
 
     function formatMoney(value) {
       return "$" + value;
@@ -1148,38 +1145,50 @@
       }
     }
 
-    function checkoutOnly() {
+    function saveOrder() {
       if (cart.length === 0) {
+        return null;
+      }
+      const snapshot = cart.map((item) => ({ id: item.id, name: item.name, price: item.price }));
+      const checkoutTime = new Date();
+      const previewOrderNo = getCounterState().nextNumber;
+      fillReceipt(snapshot, previewOrderNo, checkoutTime);
+      applyCheckoutToReport(snapshot, checkoutTime);
+      return { snapshot, checkoutTime };
+    }
+
+    function clearCart() {
+      cart = [];
+      renderCart();
+    }
+
+    function closeModal() {
+      forceResetCheckoutState();
+    }
+
+    async function handleCheckoutAndPrint() {
+      const order = await saveOrder();
+      if (!order) {
         alert("目前沒有任何品項。");
         return;
       }
-
-      const snapshot = cart.map((item) => ({ id: item.id, name: item.name, price: item.price }));
-      const checkoutTime = new Date();
-      finalizeCheckoutOrder(snapshot, checkoutTime, true, true);
+      clearCart();
+      closeModal();
+      alert("結帳成功");
+      setTimeout(() => {
+        window.print();
+      }, 500);
     }
 
-    function preparePendingReceiptForPrint() {
-      if (!pendingCheckoutAfterPrint || cart.length === 0) return;
-      pendingPrintedSnapshot = cart.map((item) => ({ id: item.id, name: item.name, price: item.price }));
-      pendingPrintedTime = new Date();
-      const previewOrderNo = getCounterState().nextNumber;
-      fillReceipt(pendingPrintedSnapshot, previewOrderNo, pendingPrintedTime);
-    }
-
-    function handleCheckoutAfterPrint() {
-      if (!pendingCheckoutAfterPrint) return;
-      pendingCheckoutAfterPrint = false;
-      if (!pendingPrintedSnapshot || !pendingPrintedTime || pendingPrintedSnapshot.length === 0) {
-        pendingPrintedSnapshot = null;
-        pendingPrintedTime = null;
+    function checkoutOnly() {
+      const order = saveOrder();
+      if (!order) {
+        alert("目前沒有任何品項。");
         return;
       }
-      finalizeCheckoutOrder(pendingPrintedSnapshot, pendingPrintedTime, false, false);
-      pendingPrintedSnapshot = null;
-      pendingPrintedTime = null;
-      forceResetCheckoutState();
-      window.location.reload();
+      clearCart();
+      closeModal();
+      alert("結帳成功");
     }
 
     function openReportModal() {
@@ -1524,10 +1533,7 @@
 
       clearOrderBtn.addEventListener("click", clearOrder);
       checkoutBtn.addEventListener("click", checkoutOnly);
-      checkoutPrintBtn.addEventListener("pointerdown", () => {
-        pendingCheckoutAfterPrint = cart.length > 0;
-      });
-      checkoutPrintBtn.addEventListener("click", () => window.print());
+      checkoutPrintBtn.addEventListener("click", handleCheckoutAndPrint);
       openReportBtn.addEventListener("click", openReportModal);
       openMonthlyReportBtn.addEventListener("click", openMonthlyReportModal);
       openHistoryBtn.addEventListener("click", openHistoryModal);
@@ -1597,8 +1603,6 @@
         if (event.target === historyModal) closeHistoryModal();
       });
 
-      window.addEventListener("beforeprint", preparePendingReceiptForPrint);
-      window.addEventListener("afterprint", handleCheckoutAfterPrint);
     }
 
     function initializeApp() {
