@@ -818,6 +818,9 @@
 
     let cart = [];
     let historyTab = "active";
+    let pendingCheckoutAfterPrint = false;
+    let pendingPrintedSnapshot = null;
+    let pendingPrintedTime = null;
 
     function formatMoney(value) {
       return "$" + value;
@@ -1145,26 +1148,38 @@
       }
     }
 
-    function checkout(printReceipt) {
+    function checkoutOnly() {
       if (cart.length === 0) {
         alert("目前沒有任何品項。");
-        return;
-      }
-
-      if (printReceipt) {
-        window.print();
-        const snapshot = cart.map((item) => ({ id: item.id, name: item.name, price: item.price }));
-        const checkoutTime = new Date();
-        const previewOrderNo = getCounterState().nextNumber;
-        fillReceipt(snapshot, previewOrderNo, checkoutTime);
-        finalizeCheckoutOrder(snapshot, checkoutTime, true, false);
-        forceResetCheckoutState();
         return;
       }
 
       const snapshot = cart.map((item) => ({ id: item.id, name: item.name, price: item.price }));
       const checkoutTime = new Date();
       finalizeCheckoutOrder(snapshot, checkoutTime, true, true);
+    }
+
+    function preparePendingReceiptForPrint() {
+      if (!pendingCheckoutAfterPrint || cart.length === 0) return;
+      pendingPrintedSnapshot = cart.map((item) => ({ id: item.id, name: item.name, price: item.price }));
+      pendingPrintedTime = new Date();
+      const previewOrderNo = getCounterState().nextNumber;
+      fillReceipt(pendingPrintedSnapshot, previewOrderNo, pendingPrintedTime);
+    }
+
+    function handleCheckoutAfterPrint() {
+      if (!pendingCheckoutAfterPrint) return;
+      pendingCheckoutAfterPrint = false;
+      if (!pendingPrintedSnapshot || !pendingPrintedTime || pendingPrintedSnapshot.length === 0) {
+        pendingPrintedSnapshot = null;
+        pendingPrintedTime = null;
+        return;
+      }
+      finalizeCheckoutOrder(pendingPrintedSnapshot, pendingPrintedTime, false, false);
+      pendingPrintedSnapshot = null;
+      pendingPrintedTime = null;
+      forceResetCheckoutState();
+      window.location.reload();
     }
 
     function openReportModal() {
@@ -1508,8 +1523,11 @@
       });
 
       clearOrderBtn.addEventListener("click", clearOrder);
-      checkoutBtn.addEventListener("click", () => checkout(false));
-      checkoutPrintBtn.addEventListener("click", () => checkout(true));
+      checkoutBtn.addEventListener("click", checkoutOnly);
+      checkoutPrintBtn.addEventListener("pointerdown", () => {
+        pendingCheckoutAfterPrint = cart.length > 0;
+      });
+      checkoutPrintBtn.addEventListener("click", () => window.print());
       openReportBtn.addEventListener("click", openReportModal);
       openMonthlyReportBtn.addEventListener("click", openMonthlyReportModal);
       openHistoryBtn.addEventListener("click", openHistoryModal);
@@ -1579,9 +1597,8 @@
         if (event.target === historyModal) closeHistoryModal();
       });
 
-      window.addEventListener("afterprint", () => {
-        forceResetCheckoutState();
-      });
+      window.addEventListener("beforeprint", preparePendingReceiptForPrint);
+      window.addEventListener("afterprint", handleCheckoutAfterPrint);
     }
 
     function initializeApp() {
