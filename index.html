@@ -1516,13 +1516,24 @@
     historyTabActive.addEventListener("click", () => switchHistoryTab("active"));
     historyTabVoided.addEventListener("click", () => switchHistoryTab("voided"));
 
-    importDataInput.addEventListener("change", async (event) => {
+    importDataInput.addEventListener("change", (event) => {
       const target = event.target;
       if (!(target instanceof HTMLInputElement) || !target.files || target.files.length === 0) return;
       const file = target.files[0];
-      const content = await file.text();
-      applyImportedData(content);
-      target.value = "";
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          applyImportedData(reader.result);
+        } else {
+          alert("匯入失敗：無法讀取檔案內容。");
+        }
+        target.value = "";
+      };
+      reader.onerror = () => {
+        alert("匯入失敗：讀取檔案時發生錯誤。");
+        target.value = "";
+      };
+      reader.readAsText(file);
     });
 
     historyList.addEventListener("click", (event) => {
