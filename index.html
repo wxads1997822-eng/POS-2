@@ -644,6 +644,8 @@
 
       body {
         background: #fff;
+        background-image: none !important;
+        background-attachment: initial !important;
       }
 
       .app,
@@ -1117,6 +1119,15 @@
       receiptTotal.textContent = formatMoney(total);
     }
 
+    function forceResetCheckoutState() {
+      [reportModal, monthlyReportModal, historyModal].forEach((modal) => {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+      });
+      document.body.style.overflow = "auto";
+      document.documentElement.style.overflow = "auto";
+    }
+
     function checkout(printReceipt) {
       if (cart.length === 0) {
         alert("目前沒有任何品項。");
@@ -1129,13 +1140,19 @@
 
       if (printReceipt) {
         fillReceipt(snapshot, previewOrderNo, checkoutTime);
-        window.print();
       }
 
       applyCheckoutToReport(snapshot, checkoutTime);
-      alert("結帳成功");
       cart = [];
       renderCart();
+      alert("結帳成功");
+
+      if (printReceipt) {
+        setTimeout(() => {
+          window.print();
+          forceResetCheckoutState();
+        }, 500);
+      }
     }
 
     function openReportModal() {
