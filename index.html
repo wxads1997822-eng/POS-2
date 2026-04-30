@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>平板 POS</title>
+  <style>
+    :root {
+      --bg: #f2f4f7;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #f97316;
+      --line: #e5e7eb;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      min-height: 50px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+      background-color: #0f172a;
+      background-image:
+        linear-gradient(rgba(15, 23, 42, 0.42), rgba(15, 23, 42, 0.42)),
+        url("https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1920&q=80");
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      padding: 12px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+    }
+
+    .brand-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #1e3a8a;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .report-btn {
+      border: none;
+      background: #111827;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 14px 18px;
+      min-height: 54px;
+      cursor: pointer;
+    }
+
+    .tool-btn {
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.72);
+      color: #1f2937;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 8px 10px;
+      min-height: 44px;
+      cursor: pointer;
+    }
+
+    .layout {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 30%);
+      gap: 16px;
+    }
+
+    .layout > .panel:first-child {
+      min-width: 0;
+    }
+
+    .layout > .panel:last-child {
+      width: 100%;
+      max-width: 380px;
+      justify-self: end;
+    }
+
+    .checkout-panel {
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .menu-panel h2 {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.62);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+
+    .panel {
+      background-color: transparent;
+      border-radius: 18px;
+      padding: 16px;
+      border: none;
+      box-shadow: none;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 22px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 15px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .menu-item {
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      background-color: rgba(255, 255, 255, 0.55);
+      border-radius: 12px;
+      padding: 20px;
+      min-height: 110px;
+      text-align: left;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: transform 0.05s ease, box-shadow 0.15s ease;
+      touch-action: manipulation;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+    }
+
+    .menu-item:hover {
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+
+    .menu-item:active {
+      transform: scale(0.98);
+    }
+
+    .menu-item strong {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 8px;
+      line-height: 1.35;
+      color: #212529;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    }
+
+    .menu-item span {
+      font-size: 18px;
+      color: #212529;
+      line-height: 1.3;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    }
+
+    .menu-item.discount {
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      background-color: rgba(40, 167, 69, 0.65);
+      color: #fff;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .menu-item.discount span {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .cart-list {
+      flex: 0 1 auto;
+      overflow: auto;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 12px;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+      min-height: 300px;
+      max-height: 60vh;
+    }
+
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 24px 8px;
+      font-size: 18px;
+    }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #eceff3;
+      padding: 10px 4px;
+    }
+
+    .cart-item:last-child {
+      border-bottom: none;
+    }
+
+    .item-name {
+      font-size: 18px;
+      line-height: 1.3;
+      color: #111827;
+    }
+
+    .item-price {
+      font-size: 18px;
+      font-weight: 700;
+      white-space: nowrap;
+      color: #111827;
+    }
+
+    .delete-btn {
+      border: none;
+      background: #fee2e2;
+      color: #991b1b;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+      min-width: 58px;
+      min-height: 42px;
+    }
+
+    .total {
+      margin: 14px 0;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 800;
+      color: #111827;
+      text-align: right;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .actions .btn {
+      flex: 1;
+    }
+
+    .actions .btn-print {
+      flex: 2;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      min-height: 58px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-clear {
+      background: var(--danger);
+    }
+
+    .btn-checkout {
+      background: var(--primary);
+    }
+
+    .btn-print {
+      background: var(--success);
+    }
+
+    .receipt-print {
+      display: none;
+      width: 80mm;
+      margin: 0 auto;
+      padding: 8mm 6mm;
+      background: #fff;
+      color: #000;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    }
+
+    .receipt-no {
+      font-size: 46px;
+      line-height: 1.1;
+      font-weight: 900;
+      text-align: center;
+      margin: 0 0 8px;
+    }
+
+    .receipt-shop,
+    .receipt-time {
+      text-align: center;
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .receipt-divider {
+      border-top: 1px dashed #000;
+      margin: 10px 0;
+    }
+
+    .receipt-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .receipt-table th,
+    .receipt-table td {
+      padding: 4px 0;
+      text-align: left;
+    }
+
+    .receipt-table th:nth-child(2),
+    .receipt-table td:nth-child(2),
+    .receipt-table th:nth-child(3),
+    .receipt-table td:nth-child(3) {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .receipt-total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 18px;
+      font-weight: 900;
+      margin-top: 8px;
+    }
+
+    .receipt-thanks {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+      margin: 16px 0 0;
+    }
+
+    .watermark-badge {
+      position: fixed;
+      bottom: 30px;
+      right: 20px;
+      z-index: 9999;
+      padding: 6px 14px;
+      border-radius: 50px;
+      background-color: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 999;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(900px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .report-total {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .report-list {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .report-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid #edf0f4;
+      font-size: 18px;
+    }
+
+    .report-row:last-child {
+      border-bottom: none;
+    }
+
+    .modal-actions {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn-close {
+      background: #334155;
+    }
+
+    .btn-reset {
+      background: var(--warning);
+    }
+
+    .reset-tip {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #94a3b8;
+      text-align: center;
+    }
+
+    .btn-reset-month {
+      background: var(--danger);
+    }
+
+    .btn-void {
+      background: var(--danger);
+      min-height: 44px;
+      font-size: 16px;
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+
+    .btn-detail {
+      background: #0f766e;
+      min-height: 44px;
+      font-size: 16px;
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+
+    .btn-item-remove {
+      background: #b91c1c;
+      min-height: 34px;
+      font-size: 13px;
+      padding: 6px 8px;
+      border-radius: 8px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 62vh;
+      overflow: auto;
+    }
+
+    .history-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 10px 0 12px;
+    }
+
+    .history-tab {
+      border: 1px solid #cbd5e1;
+      background: #e5e7eb;
+      color: #334155;
+      border-radius: 10px;
+      min-height: 44px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .history-tab.active {
+      background: #2563eb;
+      color: #fff;
+      border-color: #1d4ed8;
+      box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.25);
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+
+    .history-item.voided {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+
+    .history-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .history-main {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      align-items: center;
+      font-size: 16px;
+    }
+
+    .void-tag {
+      color: #6b7280;
+      background: #e5e7eb;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 800;
+    }
+
+    .voided-text {
+      text-decoration: line-through;
+      color: #6b7280;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .history-detail {
+      margin-top: 10px;
+      border-top: 1px dashed #d1d5db;
+      padding-top: 8px;
+      display: none;
+    }
+
+    .history-detail.show {
+      display: block;
+    }
+
+    .history-detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 15px;
+    }
+
+    @media (max-width: 1024px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .layout > .panel:first-child {
+        width: 100%;
+      }
+
+      .layout > .panel:last-child {
+        max-width: none;
+        justify-self: stretch;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .menu-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .actions {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      @page {
+        size: 80mm auto;
+        margin: 0;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .app,
+      .modal {
+        display: none !important;
+      }
+
+      .receipt-print {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand-title">管飽系統</div>
+      <div class="topbar-actions">
+        <button id="openReportBtn" class="report-btn">查看今日報表</button>
+        <button id="openMonthlyReportBtn" class="report-btn">查看本月報表</button>
+        <button id="openHistoryBtn" class="report-btn">今日歷史訂單</button>
+        <button id="exportDataBtn" class="tool-btn">匯出系統資料</button>
+        <button id="importDataBtn" class="tool-btn">匯入系統資料</button>
+        <input id="importDataInput" type="file" accept=".json,application/json" hidden />
+      </div>
+    </div>
+
+    <div class="layout">
+      <section class="panel menu-panel">
+        <h2>商品選單</h2>
+        <div id="menuGrid" class="menu-grid"></div>
+      </section>
+
+      <section class="panel checkout-panel">
+        <h2>目前訂單與結帳</h2>
+        <div id="cartList" class="cart-list"></div>
+        <div class="total">
+          <span>總金額</span>
+          <span id="totalAmount">$0</span>
+        </div>
+        <div class="actions">
+          <button id="clearOrderBtn" class="btn btn-clear">清空訂單</button>
+          <button id="checkoutBtn" class="btn btn-checkout">僅結帳</button>
+          <button id="checkoutPrintBtn" class="btn btn-print">結帳並列印</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="reportModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h2>今日營業報表</h2>
+      <div id="reportTotal" class="report-total">$0</div>
+      <div id="reportList" class="report-list"></div>
+      <div class="modal-actions">
+        <button id="closeReportBtn" class="btn btn-close">關閉</button>
+        <button id="resetReportBtn" class="btn btn-reset">清除今日所有訂單 (重新開機)</button>
+      </div>
+      <div class="reset-tip">提示：系統會自動換日計算，每日下班不須點擊此按鈕</div>
+    </div>
+  </div>
+
+  <div id="monthlyReportModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h2>本月營業報表</h2>
+      <div id="monthlyReportTotal" class="report-total">$0</div>
+      <div id="monthlyReportList" class="report-list"></div>
+      <div class="modal-actions">
+        <button id="closeMonthlyReportBtn" class="btn btn-close">關閉</button>
+        <button id="clearMonthlyReportBtn" class="btn btn-reset-month">清除本月所有紀錄</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="historyModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h2>今日歷史訂單</h2>
+      <div class="history-tabs">
+        <button id="historyTabActive" class="history-tab active" data-tab="active">正常訂單</button>
+        <button id="historyTabVoided" class="history-tab" data-tab="voided">已作廢訂單</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+      <div class="modal-actions">
+        <button id="closeHistoryBtn" class="btn btn-close">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="receiptPrint" class="receipt-print" aria-hidden="true">
+    <h1 id="receiptNo" class="receipt-no">取餐號碼：001</h1>
+    <p id="receiptShop" class="receipt-shop">管飽</p>
+    <p id="receiptTime" class="receipt-time">--</p>
+    <div class="receipt-divider"></div>
+    <table class="receipt-table">
+      <thead>
+        <tr>
+          <th>品項</th>
+          <th>數量</th>
+          <th>小計</th>
+        </tr>
+      </thead>
+      <tbody id="receiptItems"></tbody>
+    </table>
+    <div class="receipt-divider"></div>
+    <div class="receipt-total">
+      <span>總金額</span>
+      <span id="receiptTotal">$0</span>
+    </div>
+    <p class="receipt-thanks">謝謝光臨</p>
+  </section>
+
+  <div class="watermark-badge">峰專屬</div>
+
+  <script>
+    const ORDERS_STORAGE_KEY = "pos_orders_v2";
+    const LEGACY_REPORT_KEY = "pos_daily_report_v1";
+    const ORDER_COUNTER_KEY = "pos_order_counter_v1";
+    const SHOP_NAME = "管飽";
+
+    const MENU_ITEMS = [
+      { id: "misua_s", name: "麵線 (小)", price: 45 },
+      { id: "misua_l", name: "麵線 (大)", price: 55 },
+      { id: "tempura_s", name: "甜不辣 (小)", price: 50 },
+      { id: "tempura_l", name: "甜不辣 (大)", price: 70 },
+      { id: "curry_veg", name: "咖哩飯(無肉)", price: 95 },
+      { id: "curry_pork", name: "豬肉咖哩飯", price: 135 },
+      { id: "miso", name: "味噌湯", price: 25 },
+      { id: "grass_jelly", name: "仙草蜜", price: 20 },
+      { id: "combo", name: "套餐(豬肉咖哩飯+湯+仙草蜜)", price: 160 },
+      { id: "eco_discount", name: "環保碗折扣 (-$5)", price: -5, discount: true }
+    ];
+
+    const menuGrid = document.getElementById("menuGrid");
+    const cartList = document.getElementById("cartList");
+    const totalAmount = document.getElementById("totalAmount");
+    const clearOrderBtn = document.getElementById("clearOrderBtn");
+    const checkoutBtn = document.getElementById("checkoutBtn");
+    const checkoutPrintBtn = document.getElementById("checkoutPrintBtn");
+    const openReportBtn = document.getElementById("openReportBtn");
+    const openMonthlyReportBtn = document.getElementById("openMonthlyReportBtn");
+    const openHistoryBtn = document.getElementById("openHistoryBtn");
+    const exportDataBtn = document.getElementById("exportDataBtn");
+    const importDataBtn = document.getElementById("importDataBtn");
+    const importDataInput = document.getElementById("importDataInput");
+    const reportModal = document.getElementById("reportModal");
+    const closeReportBtn = document.getElementById("closeReportBtn");
+    const resetReportBtn = document.getElementById("resetReportBtn");
+    const reportTotal = document.getElementById("reportTotal");
+    const reportList = document.getElementById("reportList");
+    const monthlyReportModal = document.getElementById("monthlyReportModal");
+    const closeMonthlyReportBtn = document.getElementById("closeMonthlyReportBtn");
+    const clearMonthlyReportBtn = document.getElementById("clearMonthlyReportBtn");
+    const monthlyReportTotal = document.getElementById("monthlyReportTotal");
+    const monthlyReportList = document.getElementById("monthlyReportList");
+    const historyModal = document.getElementById("historyModal");
+    const historyList = document.getElementById("historyList");
+    const historyTabActive = document.getElementById("historyTabActive");
+    const historyTabVoided = document.getElementById("historyTabVoided");
+    const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+    const receiptNo = document.getElementById("receiptNo");
+    const receiptShop = document.getElementById("receiptShop");
+    const receiptTime = document.getElementById("receiptTime");
+    const receiptItems = document.getElementById("receiptItems");
+    const receiptTotal = document.getElementById("receiptTotal");
+
+    let cart = [];
+    let historyTab = "active";
+
+    function formatMoney(value) {
+      return "$" + value;
+    }
+
+    function createInitialReport() {
+      const itemCounts = {};
+      MENU_ITEMS.forEach((item) => {
+        itemCounts[item.id] = 0;
+      });
+      return { totalRevenue: 0, itemCounts };
+    }
+
+    function getMonthKey(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+      return year + "-" + month;
+    }
+
+    function getTodayKey(dateObj) {
+      const target = dateObj || new Date();
+      const year = target.getFullYear();
+      const month = String(target.getMonth() + 1).padStart(2, "0");
+      const day = String(target.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + day;
+    }
+
+    function buildItemCounts(items) {
+      const counts = {};
+      MENU_ITEMS.forEach((item) => {
+        counts[item.id] = 0;
+      });
+      items.forEach((item) => {
+        if (!Object.prototype.hasOwnProperty.call(counts, item.id)) {
+          counts[item.id] = 0;
+        }
+        counts[item.id] += 1;
+      });
+      return counts;
+    }
+
+    function safeNormalizeOrder(order) {
+      if (!order || typeof order !== "object") return null;
+      if (typeof order.date !== "string" || typeof order.month !== "string") return null;
+      const total = Number(order.total);
+      if (!Number.isFinite(total)) return null;
+      if (!order.itemCounts || typeof order.itemCounts !== "object") return null;
+
+      const safeCounts = {};
+      MENU_ITEMS.forEach((item) => {
+        const value = Number(order.itemCounts[item.id]);
+        safeCounts[item.id] = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+      });
+
+      return {
+        date: order.date,
+        month: order.month,
+        total,
+        itemCounts: safeCounts,
+        timestamp: typeof order.timestamp === "string" ? order.timestamp : new Date().toISOString(),
+        orderNo: Number.isFinite(Number(order.orderNo)) ? Math.floor(Number(order.orderNo)) : 0,
+        status: order.status === "voided" ? "voided" : "active",
+        lineItems: Array.isArray(order.lineItems) ? order.lineItems : [],
+        is_daily_cleared: order.is_daily_cleared === true
+      };
+    }
+
+    function migrateLegacyReportIfNeeded() {
+      const existing = localStorage.getItem(ORDERS_STORAGE_KEY);
+      if (existing) return;
+
+      const rawLegacy = localStorage.getItem(LEGACY_REPORT_KEY);
+      if (!rawLegacy) return;
+
+      try {
+        const parsed = JSON.parse(rawLegacy);
+        if (!parsed || typeof parsed !== "object") return;
+        const totalRevenue = Number(parsed.totalRevenue);
+        const itemCounts = parsed.itemCounts;
+        if (!Number.isFinite(totalRevenue) || !itemCounts || typeof itemCounts !== "object") return;
+
+        const date = getTodayKey();
+        const month = getMonthKey(new Date());
+        const migratedCounts = {};
+        MENU_ITEMS.forEach((item) => {
+          const value = Number(itemCounts[item.id]);
+          migratedCounts[item.id] = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+        });
+
+        const migratedOrder = {
+          date,
+          month,
+          total: totalRevenue,
+          itemCounts: migratedCounts,
+          timestamp: new Date().toISOString(),
+          orderNo: 0,
+          status: "active",
+          lineItems: [],
+          is_daily_cleared: false
+        };
+
+        localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify([migratedOrder]));
+      } catch (error) {
+        return;
+      }
+    }
+
+    function loadOrders() {
+      migrateLegacyReportIfNeeded();
+      const raw = localStorage.getItem(ORDERS_STORAGE_KEY);
+      if (!raw) return [];
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+          .map((order) => safeNormalizeOrder(order))
+          .filter((order) => order !== null);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveOrders(orders) {
+      localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+    }
+
+    function createSummaryFromOrders(orders) {
+      const summary = createInitialReport();
+      orders.forEach((order) => {
+        if (order.status === "voided") return;
+        summary.totalRevenue += order.total;
+        MENU_ITEMS.forEach((item) => {
+          summary.itemCounts[item.id] += order.itemCounts[item.id] || 0;
+        });
+      });
+      return summary;
+    }
+
+    function formatOrderNumber(number) {
+      return String(number).padStart(3, "0");
+    }
+
+    function getCounterState() {
+      const today = getTodayKey();
+      const fallback = { date: today, nextNumber: 1 };
+      const raw = localStorage.getItem(ORDER_COUNTER_KEY);
+      if (!raw) return fallback;
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return fallback;
+        if (parsed.date !== today) return fallback;
+        const safeNext = Number.isFinite(parsed.nextNumber) && parsed.nextNumber > 0 ? Math.floor(parsed.nextNumber) : 1;
+        return { date: today, nextNumber: safeNext };
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function saveCounterState(state) {
+      localStorage.setItem(ORDER_COUNTER_KEY, JSON.stringify(state));
+    }
+
+    function issueOrderNumber() {
+      const state = getCounterState();
+      const current = state.nextNumber;
+      saveCounterState({ date: state.date, nextNumber: current + 1 });
+      return current;
+    }
+
+    function resetTodayOrderCounter() {
+      saveCounterState({ date: getTodayKey(), nextNumber: 1 });
+    }
+
+    function formatDateTime(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const day = String(dateObj.getDate()).padStart(2, "0");
+      const hours = String(dateObj.getHours()).padStart(2, "0");
+      const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+      const seconds = String(dateObj.getSeconds()).padStart(2, "0");
+      return year + "/" + month + "/" + day + " " + hours + ":" + minutes + ":" + seconds;
+    }
+
+    function renderMenu() {
+      menuGrid.innerHTML = "";
+      MENU_ITEMS.forEach((item) => {
+        const button = document.createElement("button");
+        button.className = "menu-item" + (item.discount ? " discount" : "");
+        button.innerHTML =
+          "<strong>" +
+          item.name +
+          "</strong>" +
+          "<span>" +
+          (item.price >= 0 ? "$" + item.price : "-$" + Math.abs(item.price)) +
+          "</span>";
+        button.addEventListener("click", () => addToCart(item));
+        menuGrid.appendChild(button);
+      });
+    }
+
+    function addToCart(item) {
+      cart.push({ id: item.id, name: item.name, price: item.price });
+      renderCart();
+    }
+
+    function removeCartItem(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    function getCartTotal() {
+      return cart.reduce((sum, item) => sum + item.price, 0);
+    }
+
+    function renderCart() {
+      if (cart.length === 0) {
+        cartList.innerHTML = '<div class="empty">尚未加入品項</div>';
+      } else {
+        cartList.innerHTML = "";
+        cart.forEach((item, index) => {
+          const row = document.createElement("div");
+          row.className = "cart-item";
+          row.innerHTML =
+            '<div class="item-name">' +
+            item.name +
+            "</div>" +
+            '<div class="item-price">' +
+            (item.price >= 0 ? "$" + item.price : "-$" + Math.abs(item.price)) +
+            "</div>" +
+            '<button class="delete-btn" data-index="' +
+            index +
+            '">刪除(X)</button>';
+          cartList.appendChild(row);
+        });
+      }
+      totalAmount.textContent = formatMoney(getCartTotal());
+    }
+
+    function clearOrder() {
+      if (cart.length === 0) return;
+      cart = [];
+      renderCart();
+    }
+
+    function applyCheckoutToReport(orderItems, checkoutTime) {
+      const orders = loadOrders();
+      const date = getTodayKey(checkoutTime);
+      const month = getMonthKey(checkoutTime);
+      const orderTotal = orderItems.reduce((sum, item) => sum + item.price, 0);
+      const itemCounts = buildItemCounts(orderItems);
+
+      orders.push({
+        date,
+        month,
+        total: orderTotal,
+        itemCounts,
+        timestamp: checkoutTime.toISOString(),
+        orderNo: issueOrderNumber(),
+        status: "active",
+        lineItems: orderItems.map((item) => ({ id: item.id, name: item.name, price: item.price })),
+        is_daily_cleared: false
+      });
+
+      saveOrders(orders);
+    }
+
+    function buildReceiptSummary(orderItems) {
+      const map = {};
+      orderItems.forEach((item) => {
+        if (!map[item.id]) {
+          map[item.id] = { name: item.name, qty: 0, subtotal: 0 };
+        }
+        map[item.id].qty += 1;
+        map[item.id].subtotal += item.price;
+      });
+      return Object.values(map);
+    }
+
+    function fillReceipt(orderItems, orderNumber, checkoutTime) {
+      receiptNo.textContent = "取餐號碼：" + formatOrderNumber(orderNumber);
+      receiptShop.textContent = SHOP_NAME;
+      receiptTime.textContent = "結帳時間：" + formatDateTime(checkoutTime);
+      receiptItems.innerHTML = "";
+
+      const summary = buildReceiptSummary(orderItems);
+      summary.forEach((line) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML =
+          "<td>" +
+          line.name +
+          "</td>" +
+          "<td>" +
+          line.qty +
+          "</td>" +
+          "<td>" +
+          formatMoney(line.subtotal) +
+          "</td>";
+        receiptItems.appendChild(tr);
+      });
+
+      const total = orderItems.reduce((sum, item) => sum + item.price, 0);
+      receiptTotal.textContent = formatMoney(total);
+    }
+
+    function checkout(printReceipt) {
+      if (cart.length === 0) {
+        alert("目前沒有任何品項。");
+        return;
+      }
+
+      const snapshot = cart.map((item) => ({ id: item.id, name: item.name, price: item.price }));
+      const checkoutTime = new Date();
+      const previewOrderNo = getCounterState().nextNumber;
+
+      if (printReceipt) {
+        fillReceipt(snapshot, previewOrderNo, checkoutTime);
+        window.print();
+      }
+
+      applyCheckoutToReport(snapshot, checkoutTime);
+      alert("結帳成功");
+      cart = [];
+      renderCart();
+    }
+
+    function openReportModal() {
+      const today = getTodayKey();
+      const todayOrders = loadOrders().filter(
+        (order) => order.date === today && order.status !== "voided" && order.is_daily_cleared !== true
+      );
+      const reportData = createSummaryFromOrders(todayOrders);
+      reportTotal.textContent = "今日總營業額：" + formatMoney(reportData.totalRevenue);
+      reportList.innerHTML = "";
+
+      MENU_ITEMS.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "report-row";
+        row.innerHTML =
+          "<span>" +
+          item.name +
+          "</span>" +
+          "<strong>" +
+          reportData.itemCounts[item.id] +
+          " 次</strong>";
+        reportList.appendChild(row);
+      });
+
+      reportModal.classList.add("show");
+      reportModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeReportModal() {
+      reportModal.classList.remove("show");
+      reportModal.setAttribute("aria-hidden", "true");
+    }
+
+    function openMonthlyReportModal() {
+      const currentMonth = getMonthKey(new Date());
+      const monthOrders = loadOrders().filter((order) => order.month === currentMonth && order.status !== "voided");
+      const summary = createSummaryFromOrders(monthOrders);
+      monthlyReportTotal.textContent = "本月總營業額：" + formatMoney(summary.totalRevenue);
+      monthlyReportList.innerHTML = "";
+
+      MENU_ITEMS.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "report-row";
+        row.innerHTML =
+          "<span>" +
+          item.name +
+          "</span>" +
+          "<strong>" +
+          summary.itemCounts[item.id] +
+          " 次</strong>";
+        monthlyReportList.appendChild(row);
+      });
+
+      monthlyReportModal.classList.add("show");
+      monthlyReportModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeMonthlyReportModal() {
+      monthlyReportModal.classList.remove("show");
+      monthlyReportModal.setAttribute("aria-hidden", "true");
+    }
+
+    function renderHistoryList(tabType) {
+      const today = getTodayKey();
+      const allTodayOrders = loadOrders()
+        .filter((order) => order.date === today && order.is_daily_cleared !== true)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const todayOrders = allTodayOrders.filter((order) => order.status === tabType);
+
+      historyList.innerHTML = "";
+      if (todayOrders.length === 0) {
+        historyList.innerHTML =
+          tabType === "active"
+            ? '<div class="empty">目前沒有正常訂單</div>'
+            : '<div class="empty">目前沒有已作廢訂單</div>';
+      } else {
+        todayOrders.forEach((order, index) => {
+          const item = document.createElement("div");
+          item.className = "history-item" + (order.status === "voided" ? " voided" : "");
+          const orderNoText = "取餐號碼：" + formatOrderNumber(order.orderNo || 0);
+          const timeText = "結帳時間：" + formatDateTime(new Date(order.timestamp));
+          const totalText = "總金額：" + formatMoney(order.total);
+          const mainTextClass = order.status === "voided" ? "history-main voided-text" : "history-main";
+
+          item.innerHTML =
+            '<div class="history-head">' +
+            '<div class="' +
+            mainTextClass +
+            '">' +
+            "<strong>" +
+            orderNoText +
+            "</strong>" +
+            "<span>" +
+            timeText +
+            "</span>" +
+            "<span>" +
+            totalText +
+            "</span>" +
+            (order.status === "voided" ? '<span class="void-tag">已作廢</span>' : "") +
+            "</div>" +
+            '<div class="history-actions">' +
+            '<button class="btn btn-detail history-detail-btn" data-index="' +
+            index +
+            '">品項明細</button>' +
+            (tabType === "active"
+              ? '<button class="btn btn-void history-void-btn" data-index="' + index + '">作廢 (退單)</button>'
+              : "") +
+            "</div>" +
+            "</div>" +
+            '<div class="history-detail" id="historyDetail-' +
+            index +
+            '"></div>';
+
+          historyList.appendChild(item);
+
+          const detailEl = item.querySelector("#historyDetail-" + index);
+          const itemRows = [];
+          MENU_ITEMS.forEach((menuItem) => {
+            const qty = order.itemCounts[menuItem.id] || 0;
+            if (qty > 0) {
+              itemRows.push(
+                '<div class="history-detail-row"><span>' +
+                  menuItem.name +
+                  " x " +
+                  qty +
+                  "</span><span>" +
+                  formatMoney(menuItem.price * qty) +
+                  (tabType === "active"
+                    ? ' <button class="btn btn-item-remove history-remove-item-btn" data-index="' +
+                      index +
+                      '" data-item-id="' +
+                      menuItem.id +
+                      '" data-item-name="' +
+                      menuItem.name +
+                      '">退除 (-1)</button>'
+                    : "") +
+                  "</span></div>"
+              );
+            }
+          });
+          detailEl.innerHTML = itemRows.length > 0 ? itemRows.join("") : '<div class="empty">無品項明細</div>';
+        });
+      }
+    }
+
+    function syncHistoryTabsUI() {
+      historyTabActive.classList.toggle("active", historyTab === "active");
+      historyTabVoided.classList.toggle("active", historyTab === "voided");
+    }
+
+    function switchHistoryTab(tabType) {
+      historyTab = tabType === "voided" ? "voided" : "active";
+      syncHistoryTabsUI();
+      renderHistoryList(historyTab);
+    }
+
+    function openHistoryModal() {
+      historyTab = "active";
+      syncHistoryTabsUI();
+      renderHistoryList(historyTab);
+
+      historyModal.classList.add("show");
+      historyModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeHistoryModal() {
+      historyModal.classList.remove("show");
+      historyModal.setAttribute("aria-hidden", "true");
+    }
+
+    function voidOrderByIndex(filteredIndex) {
+      const allOrders = loadOrders();
+      const todayOrders = getTodayOrdersWithSourceIndex(allOrders);
+
+      const target = todayOrders[filteredIndex];
+      if (!target || target.status === "voided") return;
+
+      const orderNoText = formatOrderNumber(target.orderNo || 0);
+      const confirmed = confirm(
+        "確定要將 " +
+          orderNoText +
+          " 作廢嗎？作廢後將從報表中扣除此筆金額與數量。"
+      );
+      if (!confirmed) return;
+
+      allOrders[target._index].status = "voided";
+      saveOrders(allOrders);
+      renderHistoryList(historyTab);
+      alert("訂單 " + orderNoText + " 已作廢。");
+    }
+
+    function getTodayOrdersWithSourceIndex(orders) {
+      const today = getTodayKey();
+      return orders
+        .map((order, index) => ({ ...order, _index: index }))
+        .filter((order) => order.date === today)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    }
+
+    function removeOneItemFromOrder(filteredIndex, itemId, itemName) {
+      const allOrders = loadOrders();
+      const todayOrders = getTodayOrdersWithSourceIndex(allOrders);
+      const target = todayOrders[filteredIndex];
+      if (!target || target.status === "voided") return;
+
+      const currentQty = target.itemCounts[itemId] || 0;
+      if (currentQty <= 0) return;
+
+      const confirmed = confirm("確定要從此訂單中退除 1 份 " + itemName + " 嗎？");
+      if (!confirmed) return;
+
+      const sourceOrder = allOrders[target._index];
+      sourceOrder.itemCounts[itemId] = Math.max(0, (sourceOrder.itemCounts[itemId] || 0) - 1);
+
+      if (Array.isArray(sourceOrder.lineItems) && sourceOrder.lineItems.length > 0) {
+        const removeAt = sourceOrder.lineItems.findIndex((line) => line && line.id === itemId);
+        if (removeAt >= 0) sourceOrder.lineItems.splice(removeAt, 1);
+      }
+
+      let recalculatedTotal = 0;
+      MENU_ITEMS.forEach((menuItem) => {
+        const qty = sourceOrder.itemCounts[menuItem.id] || 0;
+        recalculatedTotal += menuItem.price * qty;
+      });
+      sourceOrder.total = recalculatedTotal;
+
+      const remainingCount = MENU_ITEMS.reduce((sum, menuItem) => sum + (sourceOrder.itemCounts[menuItem.id] || 0), 0);
+      if (remainingCount <= 0 || sourceOrder.total === 0) {
+        sourceOrder.status = "voided";
+      }
+
+      saveOrders(allOrders);
+      renderHistoryList(historyTab);
+      alert("已退除 1 份「" + itemName + "」。");
+    }
+
+    function resetDailyReport() {
+      const confirmed = confirm("確定要清空「今天」的所有帳目嗎？這不會影響之前的月報表歷史紀錄。");
+      if (!confirmed) return;
+
+      const today = getTodayKey();
+      const allOrders = loadOrders();
+      const updatedOrders = allOrders.map((order) => {
+        if (order.date === today) {
+          return { ...order, is_daily_cleared: true };
+        }
+        return order;
+      });
+      saveOrders(updatedOrders);
+      resetTodayOrderCounter();
+      openReportModal();
+      alert("今日營收紀錄與取餐號碼已重置。");
+    }
+
+    function clearMonthlyReport() {
+      const input = prompt('此操作將清除本月全部營收資料，請輸入「確認清除」後送出：');
+      if (input !== "確認清除") {
+        alert("輸入不正確，已取消清除。");
+        return;
+      }
+
+      const currentMonth = getMonthKey(new Date());
+      const remainingOrders = loadOrders().filter((order) => order.month !== currentMonth);
+      saveOrders(remainingOrders);
+      openMonthlyReportModal();
+      alert("本月所有紀錄已清除。");
+    }
+
+    function exportSystemData() {
+      const snapshot = {};
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        snapshot[key] = localStorage.getItem(key);
+      }
+
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        data: snapshot
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const day = getTodayKey();
+      a.href = url;
+      a.download = "mypos-backup-" + day + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      alert("系統資料已匯出。");
+    }
+
+    function applyImportedData(rawText) {
+      let parsed;
+      try {
+        parsed = JSON.parse(rawText);
+      } catch (error) {
+        alert("匯入失敗：檔案不是有效的 JSON。");
+        return;
+      }
+
+      const incoming = parsed && typeof parsed === "object" && parsed.data && typeof parsed.data === "object"
+        ? parsed.data
+        : parsed;
+      if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)) {
+        alert("匯入失敗：資料格式不正確。");
+        return;
+      }
+
+      const confirmed = confirm("匯入會覆蓋目前系統資料，確定要繼續嗎？");
+      if (!confirmed) return;
+
+      localStorage.clear();
+      Object.keys(incoming).forEach((key) => {
+        const value = incoming[key];
+        if (typeof value === "string") {
+          localStorage.setItem(key, value);
+        } else {
+          localStorage.setItem(key, JSON.stringify(value));
+        }
+      });
+
+      alert("匯入成功，將重新整理頁面。");
+      window.location.reload();
+    }
+
+    cartList.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (target.classList.contains("delete-btn")) {
+        const index = Number(target.dataset.index);
+        if (Number.isFinite(index)) removeCartItem(index);
+      }
+    });
+
+    clearOrderBtn.addEventListener("click", clearOrder);
+    checkoutBtn.addEventListener("click", () => checkout(false));
+    checkoutPrintBtn.addEventListener("click", () => checkout(true));
+    openReportBtn.addEventListener("click", openReportModal);
+    openMonthlyReportBtn.addEventListener("click", openMonthlyReportModal);
+    openHistoryBtn.addEventListener("click", openHistoryModal);
+    exportDataBtn.addEventListener("click", exportSystemData);
+    importDataBtn.addEventListener("click", () => importDataInput.click());
+    closeReportBtn.addEventListener("click", closeReportModal);
+    resetReportBtn.addEventListener("click", resetDailyReport);
+    closeMonthlyReportBtn.addEventListener("click", closeMonthlyReportModal);
+    clearMonthlyReportBtn.addEventListener("click", clearMonthlyReport);
+    closeHistoryBtn.addEventListener("click", closeHistoryModal);
+    historyTabActive.addEventListener("click", () => switchHistoryTab("active"));
+    historyTabVoided.addEventListener("click", () => switchHistoryTab("voided"));
+
+    importDataInput.addEventListener("change", async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement) || !target.files || target.files.length === 0) return;
+      const file = target.files[0];
+      const content = await file.text();
+      applyImportedData(content);
+      target.value = "";
+    });
+
+    historyList.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+
+      if (target.classList.contains("history-detail-btn")) {
+        const idx = Number(target.dataset.index);
+        if (!Number.isFinite(idx)) return;
+        const detail = document.getElementById("historyDetail-" + idx);
+        if (detail) detail.classList.toggle("show");
+      }
+
+      if (target.classList.contains("history-void-btn")) {
+        const idx = Number(target.dataset.index);
+        if (Number.isFinite(idx)) voidOrderByIndex(idx);
+      }
+
+      if (target.classList.contains("history-remove-item-btn")) {
+        const idx = Number(target.dataset.index);
+        const itemId = target.dataset.itemId;
+        const itemName = target.dataset.itemName || "品項";
+        if (Number.isFinite(idx) && itemId) removeOneItemFromOrder(idx, itemId, itemName);
+      }
+    });
+
+    reportModal.addEventListener("click", (event) => {
+      if (event.target === reportModal) closeReportModal();
+    });
+
+    monthlyReportModal.addEventListener("click", (event) => {
+      if (event.target === monthlyReportModal) closeMonthlyReportModal();
+    });
+
+    historyModal.addEventListener("click", (event) => {
+      if (event.target === historyModal) closeHistoryModal();
+    });
+
+    renderMenu();
+    renderCart();
+  </script>
+</body>
+</html>
