@@ -637,6 +637,11 @@
     }
 
     @media print {
+      * {
+        background-image: none !important;
+        transition: none !important;
+      }
+
       @page {
         size: 80mm auto;
         margin: 0;
@@ -1128,6 +1133,29 @@
       document.documentElement.style.overflow = "auto";
     }
 
+    function runPrintWithSafety() {
+      const fallbackId = setTimeout(() => {
+        forceResetCheckoutState();
+      }, 2000);
+
+      try {
+        window.print();
+      } finally {
+        clearTimeout(fallbackId);
+        forceResetCheckoutState();
+      }
+    }
+
+    function finalizeCheckoutOrder(snapshot, checkoutTime, showSuccessAlert) {
+      applyCheckoutToReport(snapshot, checkoutTime);
+      cart = [];
+      renderCart();
+      forceResetCheckoutState();
+      if (showSuccessAlert) {
+        alert("結帳成功");
+      }
+    }
+
     function checkout(printReceipt) {
       if (cart.length === 0) {
         alert("目前沒有任何品項。");
@@ -1140,19 +1168,14 @@
 
       if (printReceipt) {
         fillReceipt(snapshot, previewOrderNo, checkoutTime);
-      }
-
-      applyCheckoutToReport(snapshot, checkoutTime);
-      cart = [];
-      renderCart();
-      alert("結帳成功");
-
-      if (printReceipt) {
+        finalizeCheckoutOrder(snapshot, checkoutTime, true);
         setTimeout(() => {
-          window.print();
-          forceResetCheckoutState();
-        }, 500);
+          runPrintWithSafety();
+        }, 1000);
+        return;
       }
+
+      finalizeCheckoutOrder(snapshot, checkoutTime, true);
     }
 
     function openReportModal() {
@@ -1548,6 +1571,10 @@
 
     historyModal.addEventListener("click", (event) => {
       if (event.target === historyModal) closeHistoryModal();
+    });
+
+    window.addEventListener("afterprint", () => {
+      forceResetCheckoutState();
     });
 
     renderMenu();
