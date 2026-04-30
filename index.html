@@ -1133,24 +1133,13 @@
       document.documentElement.style.overflow = "auto";
     }
 
-    function runPrintWithSafety() {
-      const fallbackId = setTimeout(() => {
-        forceResetCheckoutState();
-      }, 2000);
-
-      try {
-        window.print();
-      } finally {
-        clearTimeout(fallbackId);
-        forceResetCheckoutState();
-      }
-    }
-
-    function finalizeCheckoutOrder(snapshot, checkoutTime, showSuccessAlert) {
+    function finalizeCheckoutOrder(snapshot, checkoutTime, showSuccessAlert, closeOverlays) {
       applyCheckoutToReport(snapshot, checkoutTime);
       cart = [];
       renderCart();
-      forceResetCheckoutState();
+      if (closeOverlays) {
+        forceResetCheckoutState();
+      }
       if (showSuccessAlert) {
         alert("結帳成功");
       }
@@ -1168,14 +1157,13 @@
 
       if (printReceipt) {
         fillReceipt(snapshot, previewOrderNo, checkoutTime);
-        finalizeCheckoutOrder(snapshot, checkoutTime, true);
-        setTimeout(() => {
-          runPrintWithSafety();
-        }, 1000);
+        finalizeCheckoutOrder(snapshot, checkoutTime, true, false);
+        window.print();
+        forceResetCheckoutState();
         return;
       }
 
-      finalizeCheckoutOrder(snapshot, checkoutTime, true);
+      finalizeCheckoutOrder(snapshot, checkoutTime, true, true);
     }
 
     function openReportModal() {
