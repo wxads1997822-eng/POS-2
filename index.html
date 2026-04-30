@@ -694,12 +694,7 @@
         <div class="actions">
           <button id="clearOrderBtn" class="btn btn-clear">清空訂單</button>
           <button id="checkoutBtn" class="btn btn-checkout">僅結帳</button>
-          <a
-            id="checkoutPrintBtn"
-            href="javascript:window.print();"
-            onclick="saveAndClear();"
-            class="btn btn-print"
-          >結帳並列印</a>
+          <button id="checkoutPrintBtn" class="btn btn-print">結帳並列印</button>
         </div>
       </section>
     </div>
@@ -1171,15 +1166,16 @@
       forceResetCheckoutState();
     }
 
-    function saveAndClear() {
-      const order = saveOrder();
+    async function handleCheckoutAndPrint() {
+      const order = await saveOrder();
       if (!order) {
         alert("目前沒有任何品項。");
         return;
       }
-      clearCart();
-      closeModal();
-      alert("結帳成功");
+      window.print();
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     }
 
     function checkoutOnly() {
@@ -1535,6 +1531,7 @@
 
       clearOrderBtn.addEventListener("click", clearOrder);
       checkoutBtn.addEventListener("click", checkoutOnly);
+      checkoutPrintBtn.addEventListener("click", handleCheckoutAndPrint);
       openReportBtn.addEventListener("click", openReportModal);
       openMonthlyReportBtn.addEventListener("click", openMonthlyReportModal);
       openHistoryBtn.addEventListener("click", openHistoryModal);
