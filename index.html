@@ -1492,93 +1492,109 @@
       window.location.reload();
     }
 
-    cartList.addEventListener("click", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
-      if (target.classList.contains("delete-btn")) {
-        const index = Number(target.dataset.index);
-        if (Number.isFinite(index)) removeCartItem(index);
-      }
-    });
+    let hasBoundStaticUiEvents = false;
 
-    clearOrderBtn.addEventListener("click", clearOrder);
-    checkoutBtn.addEventListener("click", () => checkout(false));
-    checkoutPrintBtn.addEventListener("click", () => checkout(true));
-    openReportBtn.addEventListener("click", openReportModal);
-    openMonthlyReportBtn.addEventListener("click", openMonthlyReportModal);
-    openHistoryBtn.addEventListener("click", openHistoryModal);
-    exportDataBtn.addEventListener("click", exportSystemData);
-    importDataBtn.addEventListener("click", () => importDataInput.click());
-    closeReportBtn.addEventListener("click", closeReportModal);
-    resetReportBtn.addEventListener("click", resetDailyReport);
-    closeMonthlyReportBtn.addEventListener("click", closeMonthlyReportModal);
-    clearMonthlyReportBtn.addEventListener("click", clearMonthlyReport);
-    closeHistoryBtn.addEventListener("click", closeHistoryModal);
-    historyTabActive.addEventListener("click", () => switchHistoryTab("active"));
-    historyTabVoided.addEventListener("click", () => switchHistoryTab("voided"));
+    function bindStaticUiEventsOnce() {
+      if (hasBoundStaticUiEvents) return;
+      hasBoundStaticUiEvents = true;
 
-    importDataInput.addEventListener("change", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLInputElement) || !target.files || target.files.length === 0) return;
-      const file = target.files[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          applyImportedData(reader.result);
-        } else {
-          alert("匯入失敗：無法讀取檔案內容。");
+      cartList.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        if (target.classList.contains("delete-btn")) {
+          const index = Number(target.dataset.index);
+          if (Number.isFinite(index)) removeCartItem(index);
         }
-        target.value = "";
-      };
-      reader.onerror = () => {
-        alert("匯入失敗：讀取檔案時發生錯誤。");
-        target.value = "";
-      };
-      reader.readAsText(file);
-    });
+      });
 
-    historyList.addEventListener("click", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
+      clearOrderBtn.addEventListener("click", clearOrder);
+      checkoutBtn.addEventListener("click", () => checkout(false));
+      checkoutPrintBtn.addEventListener("click", () => checkout(true));
+      openReportBtn.addEventListener("click", openReportModal);
+      openMonthlyReportBtn.addEventListener("click", openMonthlyReportModal);
+      openHistoryBtn.addEventListener("click", openHistoryModal);
+      exportDataBtn.addEventListener("click", exportSystemData);
+      importDataBtn.addEventListener("click", () => importDataInput.click());
+      closeReportBtn.addEventListener("click", closeReportModal);
+      resetReportBtn.addEventListener("click", resetDailyReport);
+      closeMonthlyReportBtn.addEventListener("click", closeMonthlyReportModal);
+      clearMonthlyReportBtn.addEventListener("click", clearMonthlyReport);
+      closeHistoryBtn.addEventListener("click", closeHistoryModal);
+      historyTabActive.addEventListener("click", () => switchHistoryTab("active"));
+      historyTabVoided.addEventListener("click", () => switchHistoryTab("voided"));
 
-      if (target.classList.contains("history-detail-btn")) {
-        const idx = Number(target.dataset.index);
-        if (!Number.isFinite(idx)) return;
-        const detail = document.getElementById("historyDetail-" + idx);
-        if (detail) detail.classList.toggle("show");
-      }
+      importDataInput.addEventListener("change", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement) || !target.files || target.files.length === 0) return;
+        const file = target.files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            applyImportedData(reader.result);
+          } else {
+            alert("匯入失敗：無法讀取檔案內容。");
+          }
+          target.value = "";
+        };
+        reader.onerror = () => {
+          alert("匯入失敗：讀取檔案時發生錯誤。");
+          target.value = "";
+        };
+        reader.readAsText(file);
+      });
 
-      if (target.classList.contains("history-void-btn")) {
-        const idx = Number(target.dataset.index);
-        if (Number.isFinite(idx)) voidOrderByIndex(idx);
-      }
+      historyList.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
 
-      if (target.classList.contains("history-remove-item-btn")) {
-        const idx = Number(target.dataset.index);
-        const itemId = target.dataset.itemId;
-        const itemName = target.dataset.itemName || "品項";
-        if (Number.isFinite(idx) && itemId) removeOneItemFromOrder(idx, itemId, itemName);
-      }
-    });
+        if (target.classList.contains("history-detail-btn")) {
+          const idx = Number(target.dataset.index);
+          if (!Number.isFinite(idx)) return;
+          const detail = document.getElementById("historyDetail-" + idx);
+          if (detail) detail.classList.toggle("show");
+        }
 
-    reportModal.addEventListener("click", (event) => {
-      if (event.target === reportModal) closeReportModal();
-    });
+        if (target.classList.contains("history-void-btn")) {
+          const idx = Number(target.dataset.index);
+          if (Number.isFinite(idx)) voidOrderByIndex(idx);
+        }
 
-    monthlyReportModal.addEventListener("click", (event) => {
-      if (event.target === monthlyReportModal) closeMonthlyReportModal();
-    });
+        if (target.classList.contains("history-remove-item-btn")) {
+          const idx = Number(target.dataset.index);
+          const itemId = target.dataset.itemId;
+          const itemName = target.dataset.itemName || "品項";
+          if (Number.isFinite(idx) && itemId) removeOneItemFromOrder(idx, itemId, itemName);
+        }
+      });
 
-    historyModal.addEventListener("click", (event) => {
-      if (event.target === historyModal) closeHistoryModal();
-    });
+      reportModal.addEventListener("click", (event) => {
+        if (event.target === reportModal) closeReportModal();
+      });
 
-    window.addEventListener("afterprint", () => {
-      forceResetCheckoutState();
-    });
+      monthlyReportModal.addEventListener("click", (event) => {
+        if (event.target === monthlyReportModal) closeMonthlyReportModal();
+      });
 
-    renderMenu();
-    renderCart();
+      historyModal.addEventListener("click", (event) => {
+        if (event.target === historyModal) closeHistoryModal();
+      });
+
+      window.addEventListener("afterprint", () => {
+        forceResetCheckoutState();
+      });
+    }
+
+    function initializeApp() {
+      bindStaticUiEventsOnce();
+      renderMenu();
+      renderCart();
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initializeApp, { once: true });
+    } else {
+      initializeApp();
+    }
   </script>
 </body>
 </html>
