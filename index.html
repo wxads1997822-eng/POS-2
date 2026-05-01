@@ -99,6 +99,40 @@
       cursor: pointer;
     }
 
+    .floating-admin-actions {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      max-width: calc(100vw - 32px);
+    }
+
+    .inventory-btn,
+    .monthly-ranking-btn {
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 12px 16px;
+      min-height: 50px;
+      cursor: pointer;
+    }
+
+    .inventory-btn {
+      background: #0f766e;
+      box-shadow: 0 8px 18px rgba(15, 118, 110, 0.35);
+    }
+
+    .monthly-ranking-btn {
+      background: #2563eb;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.34);
+    }
+
     .layout {
       flex: 1;
       min-height: 0;
@@ -157,6 +191,7 @@
       gap: 15px;
       overflow: auto;
       padding-right: 4px;
+      padding-bottom: 102px;
     }
 
     .menu-item {
@@ -463,6 +498,61 @@
       border-bottom: none;
     }
 
+    .ranking-title {
+      margin: 8px 0 10px;
+      font-size: 20px;
+      color: #0f172a;
+    }
+
+    .sales-rank-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid #edf0f4;
+    }
+
+    .sales-rank-row:last-child {
+      border-bottom: none;
+    }
+
+    .sales-rank-main {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .sales-rank-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 17px;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .sales-rank-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sales-rank-bar {
+      height: 12px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .sales-rank-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #2563eb, #0ea5e9);
+    }
+
     .modal-actions {
       margin-top: 14px;
       display: grid;
@@ -487,6 +577,41 @@
 
     .btn-reset-month {
       background: var(--danger);
+    }
+
+    /* Daily report modal: compact card layout */
+    #reportModal .modal-card {
+      width: min(500px, 100%);
+      max-width: 500px;
+      padding: 20px 18px 18px;
+    }
+
+    #reportModal h2 {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    #reportModal .report-total {
+      text-align: center;
+      padding: 18px 14px;
+      margin-bottom: 14px;
+    }
+
+    #reportModal .modal-actions {
+      max-width: 380px;
+      margin: 0 auto;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    #reportModal .modal-actions .btn {
+      min-height: 52px;
+      font-size: 18px;
+    }
+
+    #reportModal .reset-tip {
+      margin-top: 10px;
+      text-align: center;
     }
 
     .btn-void {
@@ -611,6 +736,117 @@
       font-size: 15px;
     }
 
+    .inventory-modal-card {
+      width: min(1180px, 100%);
+      height: min(92vh, 100%);
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .inventory-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .inventory-form {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr auto;
+      gap: 10px;
+    }
+
+    .inventory-input {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      min-height: 50px;
+      padding: 10px 12px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .btn-add-stock {
+      background: #0f766e;
+      min-height: 50px;
+      border-radius: 10px;
+      padding: 0 16px;
+      font-size: 18px;
+    }
+
+    .inventory-list {
+      flex: 1;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .inventory-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(90px, 0.7fr) minmax(110px, 0.8fr) minmax(120px, 0.9fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #edf0f4;
+      font-size: 18px;
+    }
+
+    .inventory-row:last-child {
+      border-bottom: none;
+    }
+
+    .inventory-row.header {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
+      font-weight: 800;
+      z-index: 1;
+    }
+
+    .inventory-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .btn-stock-plus,
+    .btn-stock-minus {
+      min-height: 44px;
+      border-radius: 10px;
+      font-size: 16px;
+      padding: 8px 12px;
+    }
+
+    .btn-stock-plus {
+      background: #16a34a;
+    }
+
+    .btn-stock-minus {
+      background: #dc2626;
+    }
+
+    .inventory-total {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 24px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .inventory-footer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
     @media (max-width: 1024px) {
       .layout {
         grid-template-columns: 1fr;
@@ -629,11 +865,47 @@
     @media (max-width: 768px) {
       .menu-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding-bottom: 150px;
       }
 
       .actions {
         grid-template-columns: 1fr;
       }
+
+      .floating-admin-actions {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        gap: 8px;
+      }
+
+      .inventory-btn,
+      .monthly-ranking-btn {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .inventory-form {
+        grid-template-columns: 1fr;
+      }
+
+      .inventory-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+
+      .inventory-row.header {
+        display: none;
+      }
+
+      .inventory-actions {
+        justify-content: flex-start;
+      }
+
+      .inventory-footer {
+        grid-template-columns: 1fr;
+      }
+
     }
 
     @media print {
@@ -700,11 +972,16 @@
     </div>
   </div>
 
+  <div class="floating-admin-actions">
+    <button id="openInventoryBtn" class="inventory-btn">後台庫存管理</button>
+    <button id="openMonthlyRankingBtn" class="monthly-ranking-btn">本月銷售排行</button>
+  </div>
+
   <div id="reportModal" class="modal" aria-hidden="true">
     <div class="modal-card">
       <h2>今日營業報表</h2>
       <div id="reportTotal" class="report-total">$0</div>
-      <div id="reportList" class="report-list"></div>
+      <div id="dailyReportList" class="report-list"></div>
       <div class="modal-actions">
         <button id="closeReportBtn" class="btn btn-close">關閉</button>
         <button id="resetReportBtn" class="btn btn-reset">清除今日所有訂單 (重新開機)</button>
@@ -725,6 +1002,16 @@
     </div>
   </div>
 
+  <div id="monthlyRankingModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h2>本月銷售排行（熱銷分析）</h2>
+      <div id="monthlyRankingList" class="report-list"></div>
+      <div class="modal-actions">
+        <button id="closeMonthlyRankingBtn" class="btn btn-close">關閉</button>
+      </div>
+    </div>
+  </div>
+
   <div id="historyModal" class="modal" aria-hidden="true">
     <div class="modal-card">
       <h2>今日歷史訂單</h2>
@@ -735,6 +1022,28 @@
       <div id="historyList" class="history-list"></div>
       <div class="modal-actions">
         <button id="closeHistoryBtn" class="btn btn-close">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="inventoryModal" class="modal" aria-hidden="true">
+    <div class="modal-card inventory-modal-card">
+      <div class="inventory-header">
+        <h2>庫存管理（Inventory Management）</h2>
+      </div>
+
+      <div class="inventory-form">
+        <input id="inventoryNameInput" class="inventory-input" type="text" placeholder="食材名稱（例：雞胸肉）" />
+        <input id="inventoryUnitInput" class="inventory-input" type="text" placeholder="單位（kg / 斤 / 個）" />
+        <input id="inventoryCostInput" class="inventory-input" type="number" min="0" step="0.01" placeholder="單位成本" />
+        <button id="addInventoryItemBtn" class="btn btn-add-stock">新增</button>
+      </div>
+
+      <div id="inventoryList" class="inventory-list"></div>
+
+      <div class="inventory-footer">
+        <div id="inventoryTotalCost" class="inventory-total">總成本價值：$0</div>
+        <button id="closeInventoryBtn" class="btn btn-close">關閉</button>
       </div>
     </div>
   </div>
@@ -768,6 +1077,7 @@
     const ORDERS_STORAGE_KEY = "pos_orders_v2";
     const LEGACY_REPORT_KEY = "pos_daily_report_v1";
     const ORDER_COUNTER_KEY = "pos_order_counter_v1";
+    const INVENTORY_STORAGE_KEY = "inventoryData";
     const SHOP_NAME = "管飽";
 
     const MENU_ITEMS = [
@@ -790,6 +1100,8 @@
     const checkoutBtn = document.getElementById("checkoutBtn");
     const checkoutPrintBtn = document.getElementById("checkoutPrintBtn");
     const openReportBtn = document.getElementById("openReportBtn");
+    const openInventoryBtn = document.getElementById("openInventoryBtn");
+    const openMonthlyRankingBtn = document.getElementById("openMonthlyRankingBtn");
     const openMonthlyReportBtn = document.getElementById("openMonthlyReportBtn");
     const openHistoryBtn = document.getElementById("openHistoryBtn");
     const exportDataBtn = document.getElementById("exportDataBtn");
@@ -799,17 +1111,28 @@
     const closeReportBtn = document.getElementById("closeReportBtn");
     const resetReportBtn = document.getElementById("resetReportBtn");
     const reportTotal = document.getElementById("reportTotal");
-    const reportList = document.getElementById("reportList");
+    const dailyReportList = document.getElementById("dailyReportList");
     const monthlyReportModal = document.getElementById("monthlyReportModal");
     const closeMonthlyReportBtn = document.getElementById("closeMonthlyReportBtn");
     const clearMonthlyReportBtn = document.getElementById("clearMonthlyReportBtn");
     const monthlyReportTotal = document.getElementById("monthlyReportTotal");
     const monthlyReportList = document.getElementById("monthlyReportList");
+    const monthlyRankingModal = document.getElementById("monthlyRankingModal");
+    const monthlyRankingList = document.getElementById("monthlyRankingList");
+    const closeMonthlyRankingBtn = document.getElementById("closeMonthlyRankingBtn");
     const historyModal = document.getElementById("historyModal");
     const historyList = document.getElementById("historyList");
     const historyTabActive = document.getElementById("historyTabActive");
     const historyTabVoided = document.getElementById("historyTabVoided");
     const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+    const inventoryModal = document.getElementById("inventoryModal");
+    const inventoryNameInput = document.getElementById("inventoryNameInput");
+    const inventoryUnitInput = document.getElementById("inventoryUnitInput");
+    const inventoryCostInput = document.getElementById("inventoryCostInput");
+    const addInventoryItemBtn = document.getElementById("addInventoryItemBtn");
+    const inventoryList = document.getElementById("inventoryList");
+    const inventoryTotalCost = document.getElementById("inventoryTotalCost");
+    const closeInventoryBtn = document.getElementById("closeInventoryBtn");
     const receiptNo = document.getElementById("receiptNo");
     const receiptShop = document.getElementById("receiptShop");
     const receiptTime = document.getElementById("receiptTime");
@@ -818,9 +1141,161 @@
 
     let cart = [];
     let historyTab = "active";
+    let inventoryData = [];
 
     function formatMoney(value) {
       return "$" + value;
+    }
+
+    function normalizeInventoryItem(item) {
+      if (!item || typeof item !== "object") return null;
+      const name = typeof item.name === "string" ? item.name.trim() : "";
+      const unit = typeof item.unit === "string" ? item.unit.trim() : "";
+      const cost = Number(item.cost);
+      const stock = Number(item.stock);
+      if (!name || !unit || !Number.isFinite(cost) || cost < 0 || !Number.isFinite(stock)) return null;
+      return {
+        id: typeof item.id === "string" && item.id ? item.id : "inv_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+        name,
+        unit,
+        cost,
+        stock: Math.max(0, stock)
+      };
+    }
+
+    function loadInventory() {
+      const raw = localStorage.getItem(INVENTORY_STORAGE_KEY);
+      if (!raw) return [];
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.map((item) => normalizeInventoryItem(item)).filter((item) => item !== null);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveInventory(data) {
+      localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function getInventoryTotalValue() {
+      return inventoryData.reduce((sum, item) => sum + item.cost * item.stock, 0);
+    }
+
+    function renderInventoryList() {
+      inventoryList.innerHTML = "";
+
+      const header = document.createElement("div");
+      header.className = "inventory-row header";
+      header.innerHTML =
+        "<div>食材名稱</div>" +
+        "<div>單位</div>" +
+        "<div>單位成本</div>" +
+        "<div>目前庫存</div>" +
+        "<div>操作</div>";
+      inventoryList.appendChild(header);
+
+      if (inventoryData.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "尚未新增食材";
+        inventoryList.appendChild(empty);
+      } else {
+        inventoryData.forEach((item) => {
+          const row = document.createElement("div");
+          row.className = "inventory-row";
+          row.innerHTML =
+            "<div><strong>" +
+            item.name +
+            "</strong></div>" +
+            "<div>" +
+            item.unit +
+            "</div>" +
+            "<div>" +
+            formatMoney(item.cost) +
+            "</div>" +
+            "<div>" +
+            item.stock +
+            " " +
+            item.unit +
+            "</div>" +
+            '<div class="inventory-actions">' +
+            '<button class="btn btn-stock-plus" data-action="plus" data-id="' +
+            item.id +
+            '">+ 進貨</button>' +
+            '<button class="btn btn-stock-minus" data-action="minus" data-id="' +
+            item.id +
+            '">- 減少</button>' +
+            "</div>";
+          inventoryList.appendChild(row);
+        });
+      }
+
+      inventoryTotalCost.textContent = "總成本價值：" + formatMoney(Math.round(getInventoryTotalValue() * 100) / 100);
+    }
+
+    function addInventoryItem() {
+      const name = inventoryNameInput.value.trim();
+      const unit = inventoryUnitInput.value.trim();
+      const cost = Number(inventoryCostInput.value);
+      if (!name || !unit) {
+        alert("請輸入完整的食材名稱與單位。");
+        return;
+      }
+      if (!Number.isFinite(cost) || cost < 0) {
+        alert("請輸入有效的單位成本。");
+        return;
+      }
+
+      inventoryData.push({
+        id: "inv_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+        name,
+        unit,
+        cost,
+        stock: 0
+      });
+      saveInventory(inventoryData);
+      renderInventoryList();
+      inventoryNameInput.value = "";
+      inventoryUnitInput.value = "";
+      inventoryCostInput.value = "";
+      inventoryNameInput.focus();
+    }
+
+    function adjustInventoryStock(itemId, isIncrease) {
+      const target = inventoryData.find((item) => item.id === itemId);
+      if (!target) return;
+
+      const verb = isIncrease ? "進貨" : "減少";
+      const input = prompt("請輸入「" + target.name + "」要" + verb + "的數量（單位：" + target.unit + "）：", "1");
+      if (input === null) return;
+      const amount = Number(input);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        alert("請輸入大於 0 的有效數量。");
+        return;
+      }
+
+      if (isIncrease) {
+        target.stock += amount;
+      } else {
+        target.stock = Math.max(0, target.stock - amount);
+      }
+      saveInventory(inventoryData);
+      renderInventoryList();
+    }
+
+    function openInventoryModal() {
+      inventoryData = loadInventory();
+      renderInventoryList();
+      inventoryModal.classList.add("show");
+      inventoryModal.setAttribute("aria-hidden", "false");
+      inventoryNameInput.focus();
+    }
+
+    function closeInventoryModal() {
+      inventoryModal.classList.remove("show");
+      inventoryModal.setAttribute("aria-hidden", "true");
     }
 
     function createInitialReport() {
@@ -1125,7 +1600,7 @@
     }
 
     function forceResetCheckoutState() {
-      [reportModal, monthlyReportModal, historyModal].forEach((modal) => {
+      [reportModal, monthlyReportModal, monthlyRankingModal, historyModal, inventoryModal].forEach((modal) => {
         modal.classList.remove("show");
         modal.setAttribute("aria-hidden", "true");
       });
@@ -1155,6 +1630,67 @@
       fillReceipt(snapshot, previewOrderNo, checkoutTime);
       applyCheckoutToReport(snapshot, checkoutTime);
       return { snapshot, checkoutTime };
+    }
+
+    function collectSalesRanking(summary) {
+      return MENU_ITEMS.map((item) => ({
+        id: item.id,
+        name: item.name,
+        qty: summary.itemCounts[item.id] || 0
+      }))
+        .filter((entry) => entry.qty > 0)
+        .sort((a, b) => b.qty - a.qty);
+    }
+
+    function renderSalesRanking(listElement, ranking, emptyText) {
+      listElement.innerHTML = "";
+      if (ranking.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = emptyText;
+        listElement.appendChild(empty);
+        return;
+      }
+
+      const maxQty = ranking[0].qty;
+      ranking.forEach((entry, index) => {
+        const widthPercent = maxQty > 0 ? Math.max(8, (entry.qty / maxQty) * 100) : 0;
+        const row = document.createElement("div");
+        row.className = "sales-rank-row";
+        row.innerHTML =
+          '<div class="sales-rank-main">' +
+          '<div class="sales-rank-top">' +
+          '<span class="sales-rank-name">' +
+          (index + 1) +
+          ". " +
+          entry.name +
+          "</span>" +
+          "<strong>" +
+          entry.qty +
+          " 份</strong>" +
+          "</div>" +
+          '<div class="sales-rank-bar"><div class="sales-rank-bar-fill" style="width:' +
+          widthPercent +
+          '%;"></div></div>' +
+          "</div>" +
+          '<div>' +
+          entry.qty +
+          " 份</div>";
+        listElement.appendChild(row);
+      });
+    }
+
+    function collectTodaySalesAnalytics() {
+      const today = getTodayKey();
+      const todayOrders = loadOrders().filter(
+        (order) => order.date === today && order.status !== "voided" && order.is_daily_cleared !== true
+      );
+      const summary = createSummaryFromOrders(todayOrders);
+
+      return {
+        totalRevenue: summary.totalRevenue,
+        itemCounts: summary.itemCounts
+      };
     }
 
     function clearCart() {
@@ -1190,13 +1726,9 @@
     }
 
     function openReportModal() {
-      const today = getTodayKey();
-      const todayOrders = loadOrders().filter(
-        (order) => order.date === today && order.status !== "voided" && order.is_daily_cleared !== true
-      );
-      const reportData = createSummaryFromOrders(todayOrders);
-      reportTotal.textContent = "今日總營業額：" + formatMoney(reportData.totalRevenue);
-      reportList.innerHTML = "";
+      const analytics = collectTodaySalesAnalytics();
+      reportTotal.textContent = "今日總營業額：" + formatMoney(analytics.totalRevenue);
+      dailyReportList.innerHTML = "";
 
       MENU_ITEMS.forEach((item) => {
         const row = document.createElement("div");
@@ -1206,9 +1738,9 @@
           item.name +
           "</span>" +
           "<strong>" +
-          reportData.itemCounts[item.id] +
+          (analytics.itemCounts[item.id] || 0) +
           " 次</strong>";
-        reportList.appendChild(row);
+        dailyReportList.appendChild(row);
       });
 
       reportModal.classList.add("show");
@@ -1247,6 +1779,21 @@
     function closeMonthlyReportModal() {
       monthlyReportModal.classList.remove("show");
       monthlyReportModal.setAttribute("aria-hidden", "true");
+    }
+
+    function openMonthlyRankingModal() {
+      const currentMonth = getMonthKey(new Date());
+      const monthOrders = loadOrders().filter((order) => order.month === currentMonth && order.status !== "voided");
+      const summary = createSummaryFromOrders(monthOrders);
+      const ranking = collectSalesRanking(summary);
+      renderSalesRanking(monthlyRankingList, ranking, "本月尚無銷售資料");
+      monthlyRankingModal.classList.add("show");
+      monthlyRankingModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeMonthlyRankingModal() {
+      monthlyRankingModal.classList.remove("show");
+      monthlyRankingModal.setAttribute("aria-hidden", "true");
     }
 
     function renderHistoryList(tabType) {
@@ -1532,6 +2079,8 @@
       clearOrderBtn.addEventListener("click", clearOrder);
       checkoutBtn.addEventListener("click", checkoutOnly);
       checkoutPrintBtn.addEventListener("click", handleCheckoutAndPrint);
+      openInventoryBtn.addEventListener("click", openInventoryModal);
+      openMonthlyRankingBtn.addEventListener("click", openMonthlyRankingModal);
       openReportBtn.addEventListener("click", openReportModal);
       openMonthlyReportBtn.addEventListener("click", openMonthlyReportModal);
       openHistoryBtn.addEventListener("click", openHistoryModal);
@@ -1541,7 +2090,13 @@
       resetReportBtn.addEventListener("click", resetDailyReport);
       closeMonthlyReportBtn.addEventListener("click", closeMonthlyReportModal);
       clearMonthlyReportBtn.addEventListener("click", clearMonthlyReport);
+      closeMonthlyRankingBtn.addEventListener("click", closeMonthlyRankingModal);
       closeHistoryBtn.addEventListener("click", closeHistoryModal);
+      closeInventoryBtn.addEventListener("click", closeInventoryModal);
+      addInventoryItemBtn.addEventListener("click", addInventoryItem);
+      inventoryCostInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") addInventoryItem();
+      });
       historyTabActive.addEventListener("click", () => switchHistoryTab("active"));
       historyTabVoided.addEventListener("click", () => switchHistoryTab("voided"));
 
@@ -1597,8 +2152,25 @@
         if (event.target === monthlyReportModal) closeMonthlyReportModal();
       });
 
+      monthlyRankingModal.addEventListener("click", (event) => {
+        if (event.target === monthlyRankingModal) closeMonthlyRankingModal();
+      });
+
       historyModal.addEventListener("click", (event) => {
         if (event.target === historyModal) closeHistoryModal();
+      });
+
+      inventoryModal.addEventListener("click", (event) => {
+        if (event.target === inventoryModal) closeInventoryModal();
+      });
+
+      inventoryList.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        const itemId = target.dataset.id;
+        if (!itemId) return;
+        if (target.dataset.action === "plus") adjustInventoryStock(itemId, true);
+        if (target.dataset.action === "minus") adjustInventoryStock(itemId, false);
       });
 
     }
