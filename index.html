@@ -1708,10 +1708,28 @@
         alert("目前沒有任何品項。");
         return;
       }
+      let hasFinalized = false;
+      const finalizeAfterPrint = () => {
+        if (hasFinalized) return;
+        hasFinalized = true;
+        clearCart();
+        closeModal();
+        alert("結帳成功");
+      };
+
+      const afterPrintHandler = () => {
+        window.removeEventListener("afterprint", afterPrintHandler);
+        setTimeout(finalizeAfterPrint, 1500);
+      };
+
+      window.addEventListener("afterprint", afterPrintHandler);
       window.print();
+
+      // iOS Safari 有時不會穩定觸發 afterprint，使用 fallback 確保流程可完成
       setTimeout(() => {
-        window.location.reload();
-      }, 500);
+        window.removeEventListener("afterprint", afterPrintHandler);
+        finalizeAfterPrint();
+      }, 3500);
     }
 
     function checkoutOnly() {
