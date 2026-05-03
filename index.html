@@ -151,6 +151,32 @@
       justify-self: end;
     }
 
+    .app-logout-footer {
+      flex-shrink: 0;
+      margin-top: auto;
+      padding-top: 4px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .btn-logout {
+      border: 1px solid rgba(220, 38, 38, 0.42);
+      background: rgba(255, 255, 255, 0.9);
+      color: #b91c1c;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 12px 28px;
+      min-height: 48px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .btn-logout:active {
+      transform: scale(0.99);
+    }
+
     .checkout-panel {
       background-color: rgba(255, 255, 255, 0.95);
       border-radius: 15px;
@@ -969,6 +995,30 @@
       border-color: var(--primary);
     }
 
+    .login-remember {
+      margin: 4px 0 12px;
+    }
+
+    .login-remember-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .login-remember-label input {
+      width: 20px;
+      height: 20px;
+      min-height: 20px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
     .login-submit {
       width: 100%;
       margin-top: 8px;
@@ -1057,6 +1107,12 @@
         <label for="loginPassword">密碼</label>
         <input id="loginPassword" type="password" autocomplete="current-password" />
       </div>
+      <div class="login-remember">
+        <label class="login-remember-label" for="rememberEmailCheckbox">
+          <input type="checkbox" id="rememberEmailCheckbox" />
+          <span>記住帳號</span>
+        </label>
+      </div>
       <button type="button" id="loginBtn" class="login-submit">登入</button>
       <div id="loginErrorText" class="login-error" role="alert" aria-live="polite"></div>
     </div>
@@ -1095,6 +1151,10 @@
           <button id="checkoutPrintBtn" class="btn btn-print">結帳並列印</button>
         </div>
       </section>
+    </div>
+
+    <div class="app-logout-footer">
+      <button type="button" id="logoutBtn" class="btn-logout">登出系統</button>
     </div>
   </div>
 
@@ -1218,7 +1278,8 @@
     import {
       getAuth,
       onAuthStateChanged,
-      signInWithEmailAndPassword
+      signInWithEmailAndPassword,
+      signOut
     } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -2353,6 +2414,17 @@
       });
 
       clearOrderBtn.addEventListener("click", clearOrder);
+
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+          void signOut(auth).catch((error) => {
+            console.error(error);
+            alert("登出失敗：" + (error && error.message ? error.message : String(error)));
+          });
+        });
+      }
+
       checkoutBtn.addEventListener("click", checkoutOnly);
       checkoutPrintBtn.addEventListener("click", handleCheckoutAndPrint);
       openInventoryBtn.addEventListener("click", openInventoryModal);
@@ -2467,16 +2539,35 @@
       renderCart();
     }
 
+    const SAVED_EMAIL_KEY = "savedEmail";
+
     const loginOverlayEl = document.getElementById("loginOverlay");
     const posWorkspaceEl = document.getElementById("posWorkspace");
     const loginErrorTextEl = document.getElementById("loginErrorText");
     const loginEmailEl = document.getElementById("loginEmail");
     const loginPasswordEl = document.getElementById("loginPassword");
     const loginBtnEl = document.getElementById("loginBtn");
+    const rememberEmailCheckboxEl = document.getElementById("rememberEmailCheckbox");
 
     function setLoginError(message) {
       if (loginErrorTextEl) {
         loginErrorTextEl.textContent = message ? String(message) : "";
+      }
+    }
+
+    function syncLoginFormFromSavedEmail() {
+      try {
+        const saved = localStorage.getItem(SAVED_EMAIL_KEY);
+        if (saved && typeof saved === "string" && saved.trim()) {
+          if (loginEmailEl) loginEmailEl.value = saved.trim();
+          if (rememberEmailCheckboxEl) rememberEmailCheckboxEl.checked = true;
+        } else {
+          if (loginEmailEl) loginEmailEl.value = "";
+          if (rememberEmailCheckboxEl) rememberEmailCheckboxEl.checked = false;
+        }
+      } catch (error) {
+        if (loginEmailEl) loginEmailEl.value = "";
+        if (rememberEmailCheckboxEl) rememberEmailCheckboxEl.checked = false;
       }
     }
 
@@ -2491,6 +2582,15 @@
       return signInWithEmailAndPassword(auth, email, password)
         .then(() => {
           if (loginPasswordEl) loginPasswordEl.value = "";
+          try {
+            if (rememberEmailCheckboxEl && rememberEmailCheckboxEl.checked) {
+              localStorage.setItem(SAVED_EMAIL_KEY, email);
+            } else {
+              localStorage.removeItem(SAVED_EMAIL_KEY);
+            }
+          } catch (storageError) {
+            console.warn(storageError);
+          }
         })
         .catch((error) => {
           setLoginError(error.message || String(error));
@@ -2512,6 +2612,8 @@
       });
     }
 
+    syncLoginFormFromSavedEmail();
+
     onAuthStateChanged(auth, (user) => {
       if (!loginOverlayEl || !posWorkspaceEl) return;
       if (user) {
@@ -2521,6 +2623,8 @@
       } else {
         posWorkspaceEl.hidden = true;
         loginOverlayEl.classList.remove("is-hidden");
+        if (loginPasswordEl) loginPasswordEl.value = "";
+        syncLoginFormFromSavedEmail();
       }
     });
 
