@@ -908,6 +908,93 @@
 
     }
 
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(145deg, #0f172a 0%, #1e3a8a 45%, #0f172a 100%);
+      box-sizing: border-box;
+    }
+
+    .login-overlay.is-hidden {
+      display: none !important;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: var(--radius);
+      padding: 28px 24px 24px;
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    .login-card h1 {
+      margin: 0 0 20px;
+      font-size: 24px;
+      font-weight: 800;
+      color: #1e3a8a;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .login-field {
+      margin-bottom: 14px;
+    }
+
+    .login-field label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .login-field input {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 12px;
+      font-size: 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+
+    .login-field input:focus {
+      outline: 2px solid rgba(37, 99, 235, 0.35);
+      border-color: var(--primary);
+    }
+
+    .login-submit {
+      width: 100%;
+      margin-top: 8px;
+      min-height: 52px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .login-submit:active {
+      transform: scale(0.99);
+    }
+
+    .login-error {
+      min-height: 22px;
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--danger);
+      line-height: 1.4;
+    }
+
     @media print {
       * {
         background-image: none !important;
@@ -951,10 +1038,31 @@
       .receipt-print {
         display: block !important;
       }
+
+      .login-overlay {
+        display: none !important;
+      }
     }
   </style>
 </head>
 <body>
+  <div id="loginOverlay" class="login-overlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="login-card">
+      <h1 id="loginTitle">管飽 POS 系統</h1>
+      <div class="login-field">
+        <label for="loginEmail">帳號 (Email)</label>
+        <input id="loginEmail" type="email" autocomplete="username" inputmode="email" />
+      </div>
+      <div class="login-field">
+        <label for="loginPassword">密碼</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" />
+      </div>
+      <button type="button" id="loginBtn" class="login-submit">登入</button>
+      <div id="loginErrorText" class="login-error" role="alert" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div id="posWorkspace" hidden>
   <div class="app">
     <div class="topbar">
       <div class="brand-title">管飽系統</div>
@@ -1090,10 +1198,51 @@
   </section>
 
   <div class="watermark-badge">峰專屬</div>
+  </div>
 
-  <script>
-    const ORDERS_STORAGE_KEY = "pos_orders_v2";
-    const LEGACY_REPORT_KEY = "pos_daily_report_v1";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      query,
+      where,
+      updateDoc,
+      doc,
+      writeBatch,
+      Timestamp
+    } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-9cqAyRjtUxbJhV95o5Y203oOhc3Twew",
+      authDomain: "guanbao-pos.firebaseapp.com",
+      projectId: "guanbao-pos",
+      storageBucket: "guanbao-pos.firebasestorage.app",
+      messagingSenderId: "1032609415697",
+      appId: "1:1032609415697:web:d39485dd3df274606a67b0",
+      measurementId: "G-0F3DDD34K1"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    try {
+      getAnalytics(firebaseApp);
+    } catch (analyticsError) {
+      console.warn("Firebase Analytics 無法初始化（可忽略）：", analyticsError);
+    }
+    const db = getFirestore(firebaseApp);
+    const auth = getAuth(firebaseApp);
+    window.posDb = db;
+    window.posAuth = auth;
+
+    const ORDERS_COLLECTION = "orders";
     const ORDER_COUNTER_KEY = "pos_order_counter_v1";
     const INVENTORY_STORAGE_KEY = "inventoryData";
     const SHOP_NAME = "管飽";
@@ -1378,64 +1527,63 @@
       };
     }
 
-    function migrateLegacyReportIfNeeded() {
-      const existing = localStorage.getItem(ORDERS_STORAGE_KEY);
-      if (existing) return;
-
-      const rawLegacy = localStorage.getItem(LEGACY_REPORT_KEY);
-      if (!rawLegacy) return;
-
-      try {
-        const parsed = JSON.parse(rawLegacy);
-        if (!parsed || typeof parsed !== "object") return;
-        const totalRevenue = Number(parsed.totalRevenue);
-        const itemCounts = parsed.itemCounts;
-        if (!Number.isFinite(totalRevenue) || !itemCounts || typeof itemCounts !== "object") return;
-
-        const date = getTodayKey();
-        const month = getMonthKey(new Date());
-        const migratedCounts = {};
-        MENU_ITEMS.forEach((item) => {
-          const value = Number(itemCounts[item.id]);
-          migratedCounts[item.id] = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
-        });
-
-        const migratedOrder = {
-          date,
-          month,
-          total: totalRevenue,
-          itemCounts: migratedCounts,
-          timestamp: new Date().toISOString(),
-          orderNo: 0,
-          status: "active",
-          lineItems: [],
-          is_daily_cleared: false
-        };
-
-        localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify([migratedOrder]));
-      } catch (error) {
-        return;
+    function firestoreTimestampToIso(value) {
+      if (value && typeof value.toDate === "function") {
+        return value.toDate().toISOString();
       }
+      if (typeof value === "string") return value;
+      return new Date().toISOString();
     }
 
-    function loadOrders() {
-      migrateLegacyReportIfNeeded();
-      const raw = localStorage.getItem(ORDERS_STORAGE_KEY);
-      if (!raw) return [];
-
-      try {
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed)) return [];
-        return parsed
-          .map((order) => safeNormalizeOrder(order))
-          .filter((order) => order !== null);
-      } catch (error) {
-        return [];
-      }
+    function orderFromFirestoreDoc(docSnap) {
+      const data = docSnap.data();
+      if (!data || typeof data !== "object") return null;
+      const normalized = safeNormalizeOrder({
+        ...data,
+        timestamp: firestoreTimestampToIso(data.timestamp)
+      });
+      if (!normalized) return null;
+      return { ...normalized, id: docSnap.id };
     }
 
-    function saveOrders(orders) {
-      localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+    async function fetchOrdersByDate(todayKey) {
+      const q = query(collection(db, ORDERS_COLLECTION), where("date", "==", todayKey));
+      const snap = await getDocs(q);
+      const list = [];
+      snap.forEach((docSnap) => {
+        const o = orderFromFirestoreDoc(docSnap);
+        if (o) list.push(o);
+      });
+      return list;
+    }
+
+    async function fetchOrdersByMonth(monthKey) {
+      const q = query(collection(db, ORDERS_COLLECTION), where("month", "==", monthKey));
+      const snap = await getDocs(q);
+      const list = [];
+      snap.forEach((docSnap) => {
+        const o = orderFromFirestoreDoc(docSnap);
+        if (o) list.push(o);
+      });
+      return list;
+    }
+
+    async function persistNewOrderToFirestore(orderItems, checkoutTime, orderNo) {
+      const date = getTodayKey(checkoutTime);
+      const month = getMonthKey(checkoutTime);
+      const orderTotal = orderItems.reduce((sum, item) => sum + item.price, 0);
+      const itemCounts = buildItemCounts(orderItems);
+      await addDoc(collection(db, ORDERS_COLLECTION), {
+        date,
+        month,
+        total: orderTotal,
+        itemCounts,
+        timestamp: Timestamp.fromDate(checkoutTime),
+        orderNo,
+        status: "active",
+        lineItems: orderItems.map((item) => ({ id: item.id, name: item.name, price: item.price })),
+        is_daily_cleared: false
+      });
     }
 
     function createSummaryFromOrders(orders) {
@@ -1557,28 +1705,6 @@
       renderCart();
     }
 
-    function applyCheckoutToReport(orderItems, checkoutTime) {
-      const orders = loadOrders();
-      const date = getTodayKey(checkoutTime);
-      const month = getMonthKey(checkoutTime);
-      const orderTotal = orderItems.reduce((sum, item) => sum + item.price, 0);
-      const itemCounts = buildItemCounts(orderItems);
-
-      orders.push({
-        date,
-        month,
-        total: orderTotal,
-        itemCounts,
-        timestamp: checkoutTime.toISOString(),
-        orderNo: issueOrderNumber(),
-        status: "active",
-        lineItems: orderItems.map((item) => ({ id: item.id, name: item.name, price: item.price })),
-        is_daily_cleared: false
-      });
-
-      saveOrders(orders);
-    }
-
     function buildReceiptSummary(orderItems) {
       const map = {};
       orderItems.forEach((item) => {
@@ -1626,27 +1752,15 @@
       document.documentElement.style.overflow = "auto";
     }
 
-    function finalizeCheckoutOrder(snapshot, checkoutTime, showSuccessAlert, closeOverlays) {
-      applyCheckoutToReport(snapshot, checkoutTime);
-      cart = [];
-      renderCart();
-      if (closeOverlays) {
-        forceResetCheckoutState();
-      }
-      if (showSuccessAlert) {
-        alert("結帳成功");
-      }
-    }
-
-    function saveOrder() {
+    async function saveOrder() {
       if (cart.length === 0) {
         return null;
       }
       const snapshot = cart.map((item) => ({ id: item.id, name: item.name, price: item.price }));
       const checkoutTime = new Date();
-      const previewOrderNo = getCounterState().nextNumber;
-      fillReceipt(snapshot, previewOrderNo, checkoutTime);
-      applyCheckoutToReport(snapshot, checkoutTime);
+      const orderNo = issueOrderNumber();
+      fillReceipt(snapshot, orderNo, checkoutTime);
+      await persistNewOrderToFirestore(snapshot, checkoutTime, orderNo);
       return { snapshot, checkoutTime };
     }
 
@@ -1698,9 +1812,10 @@
       });
     }
 
-    function collectTodaySalesAnalytics() {
+    async function collectTodaySalesAnalytics() {
       const today = getTodayKey();
-      const todayOrders = loadOrders().filter(
+      const orders = await fetchOrdersByDate(today);
+      const todayOrders = orders.filter(
         (order) => order.date === today && order.status !== "voided" && order.is_daily_cleared !== true
       );
       const summary = createSummaryFromOrders(todayOrders);
@@ -1721,7 +1836,14 @@
     }
 
     async function handleCheckoutAndPrint() {
-      const order = await saveOrder();
+      let order;
+      try {
+        order = await saveOrder();
+      } catch (error) {
+        console.error(error);
+        alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
       if (!order) {
         alert("目前沒有任何品項。");
         return;
@@ -1750,8 +1872,15 @@
       }, 3500);
     }
 
-    function checkoutOnly() {
-      const order = saveOrder();
+    async function checkoutOnly() {
+      let order;
+      try {
+        order = await saveOrder();
+      } catch (error) {
+        console.error(error);
+        alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
       if (!order) {
         alert("目前沒有任何品項。");
         return;
@@ -1761,8 +1890,15 @@
       alert("結帳成功");
     }
 
-    function openReportModal() {
-      const analytics = collectTodaySalesAnalytics();
+    async function openReportModal() {
+      let analytics;
+      try {
+        analytics = await collectTodaySalesAnalytics();
+      } catch (error) {
+        console.error(error);
+        alert("載入今日報表失敗：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
       reportTotal.textContent = "今日總營業額：" + formatMoney(analytics.totalRevenue);
       dailyReportList.innerHTML = "";
 
@@ -1788,9 +1924,16 @@
       reportModal.setAttribute("aria-hidden", "true");
     }
 
-    function openMonthlyReportModal() {
+    async function openMonthlyReportModal() {
       const currentMonth = getMonthKey(new Date());
-      const monthOrders = loadOrders().filter((order) => order.month === currentMonth && order.status !== "voided");
+      let monthOrders;
+      try {
+        monthOrders = await fetchOrdersByMonth(currentMonth);
+      } catch (error) {
+        console.error(error);
+        alert("載入本月報表失敗：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
       const summary = createSummaryFromOrders(monthOrders);
       monthlyReportTotal.textContent = "本月總營業額：" + formatMoney(summary.totalRevenue);
       monthlyReportList.innerHTML = "";
@@ -1817,9 +1960,16 @@
       monthlyReportModal.setAttribute("aria-hidden", "true");
     }
 
-    function openMonthlyRankingModal() {
+    async function openMonthlyRankingModal() {
       const currentMonth = getMonthKey(new Date());
-      const monthOrders = loadOrders().filter((order) => order.month === currentMonth && order.status !== "voided");
+      let monthOrders;
+      try {
+        monthOrders = await fetchOrdersByMonth(currentMonth);
+      } catch (error) {
+        console.error(error);
+        alert("載入本月排行失敗：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
       const summary = createSummaryFromOrders(monthOrders);
       const ranking = collectSalesRanking(summary);
       renderSalesRanking(monthlyRankingList, ranking, "本月尚無銷售資料");
@@ -1832,9 +1982,20 @@
       monthlyRankingModal.setAttribute("aria-hidden", "true");
     }
 
-    function renderHistoryList(tabType) {
+    async function renderHistoryList(tabType) {
       const today = getTodayKey();
-      const allTodayOrders = loadOrders()
+      let allTodayOrders;
+      try {
+        allTodayOrders = await fetchOrdersByDate(today);
+      } catch (error) {
+        console.error(error);
+        historyList.innerHTML =
+          '<div class="empty">載入訂單失敗：' +
+          (error && error.message ? error.message : String(error)) +
+          "</div>";
+        return;
+      }
+      allTodayOrders = allTodayOrders
         .filter((order) => order.date === today && order.is_daily_cleared !== true)
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       const todayOrders = allTodayOrders.filter((order) => order.status === tabType);
@@ -1920,16 +2081,16 @@
       historyTabVoided.classList.toggle("active", historyTab === "voided");
     }
 
-    function switchHistoryTab(tabType) {
+    async function switchHistoryTab(tabType) {
       historyTab = tabType === "voided" ? "voided" : "active";
       syncHistoryTabsUI();
-      renderHistoryList(historyTab);
+      await renderHistoryList(historyTab);
     }
 
-    function openHistoryModal() {
+    async function openHistoryModal() {
       historyTab = "active";
       syncHistoryTabsUI();
-      renderHistoryList(historyTab);
+      await renderHistoryList(historyTab);
 
       historyModal.classList.add("show");
       historyModal.setAttribute("aria-hidden", "false");
@@ -1940,12 +2101,26 @@
       historyModal.setAttribute("aria-hidden", "true");
     }
 
-    function voidOrderByIndex(filteredIndex) {
-      const allOrders = loadOrders();
-      const todayOrders = getTodayOrdersWithSourceIndex(allOrders);
+    async function getTodayOrdersSorted() {
+      const today = getTodayKey();
+      const orders = await fetchOrdersByDate(today);
+      return orders
+        .filter((order) => order.date === today)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    }
+
+    async function voidOrderByIndex(filteredIndex) {
+      let todayOrders;
+      try {
+        todayOrders = await getTodayOrdersSorted();
+      } catch (error) {
+        console.error(error);
+        alert("載入訂單失敗：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
 
       const target = todayOrders[filteredIndex];
-      if (!target || target.status === "voided") return;
+      if (!target || target.status === "voided" || !target.id) return;
 
       const orderNoText = formatOrderNumber(target.orderNo || 0);
       const confirmed = confirm(
@@ -1955,25 +2130,29 @@
       );
       if (!confirmed) return;
 
-      allOrders[target._index].status = "voided";
-      saveOrders(allOrders);
-      renderHistoryList(historyTab);
+      try {
+        await updateDoc(doc(db, ORDERS_COLLECTION, target.id), { status: "voided" });
+      } catch (error) {
+        console.error(error);
+        alert("作廢失敗：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
+      await renderHistoryList(historyTab);
       alert("訂單 " + orderNoText + " 已作廢。");
     }
 
-    function getTodayOrdersWithSourceIndex(orders) {
-      const today = getTodayKey();
-      return orders
-        .map((order, index) => ({ ...order, _index: index }))
-        .filter((order) => order.date === today)
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    }
+    async function removeOneItemFromOrder(filteredIndex, itemId, itemName) {
+      let todayOrders;
+      try {
+        todayOrders = await getTodayOrdersSorted();
+      } catch (error) {
+        console.error(error);
+        alert("載入訂單失敗：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
 
-    function removeOneItemFromOrder(filteredIndex, itemId, itemName) {
-      const allOrders = loadOrders();
-      const todayOrders = getTodayOrdersWithSourceIndex(allOrders);
       const target = todayOrders[filteredIndex];
-      if (!target || target.status === "voided") return;
+      if (!target || target.status === "voided" || !target.id) return;
 
       const currentQty = target.itemCounts[itemId] || 0;
       if (currentQty <= 0) return;
@@ -1981,50 +2160,79 @@
       const confirmed = confirm("確定要從此訂單中退除 1 份 " + itemName + " 嗎？");
       if (!confirmed) return;
 
-      const sourceOrder = allOrders[target._index];
-      sourceOrder.itemCounts[itemId] = Math.max(0, (sourceOrder.itemCounts[itemId] || 0) - 1);
+      const nextCounts = { ...target.itemCounts };
+      nextCounts[itemId] = Math.max(0, (nextCounts[itemId] || 0) - 1);
 
-      if (Array.isArray(sourceOrder.lineItems) && sourceOrder.lineItems.length > 0) {
-        const removeAt = sourceOrder.lineItems.findIndex((line) => line && line.id === itemId);
-        if (removeAt >= 0) sourceOrder.lineItems.splice(removeAt, 1);
+      const nextLineItems = Array.isArray(target.lineItems) ? target.lineItems.slice() : [];
+      if (nextLineItems.length > 0) {
+        const removeAt = nextLineItems.findIndex((line) => line && line.id === itemId);
+        if (removeAt >= 0) nextLineItems.splice(removeAt, 1);
       }
 
       let recalculatedTotal = 0;
       MENU_ITEMS.forEach((menuItem) => {
-        const qty = sourceOrder.itemCounts[menuItem.id] || 0;
+        const qty = nextCounts[menuItem.id] || 0;
         recalculatedTotal += menuItem.price * qty;
       });
-      sourceOrder.total = recalculatedTotal;
 
-      const remainingCount = MENU_ITEMS.reduce((sum, menuItem) => sum + (sourceOrder.itemCounts[menuItem.id] || 0), 0);
-      if (remainingCount <= 0 || sourceOrder.total === 0) {
-        sourceOrder.status = "voided";
+      const remainingCount = MENU_ITEMS.reduce((sum, menuItem) => sum + (nextCounts[menuItem.id] || 0), 0);
+      const nextStatus = remainingCount <= 0 || recalculatedTotal === 0 ? "voided" : target.status;
+
+      try {
+        await updateDoc(doc(db, ORDERS_COLLECTION, target.id), {
+          itemCounts: nextCounts,
+          lineItems: nextLineItems,
+          total: recalculatedTotal,
+          status: nextStatus
+        });
+      } catch (error) {
+        console.error(error);
+        alert("更新失敗：" + (error && error.message ? error.message : String(error)));
+        return;
       }
 
-      saveOrders(allOrders);
-      renderHistoryList(historyTab);
+      await renderHistoryList(historyTab);
       alert("已退除 1 份「" + itemName + "」。");
     }
 
-    function resetDailyReport() {
+    async function resetDailyReport() {
       const confirmed = confirm("確定要清空「今天」的所有帳目嗎？這不會影響之前的月報表歷史紀錄。");
       if (!confirmed) return;
 
       const today = getTodayKey();
-      const allOrders = loadOrders();
-      const updatedOrders = allOrders.map((order) => {
-        if (order.date === today) {
-          return { ...order, is_daily_cleared: true };
+      let orders;
+      try {
+        orders = await fetchOrdersByDate(today);
+      } catch (error) {
+        console.error(error);
+        alert("載入訂單失敗：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
+
+      const targets = orders.filter((order) => order.date === today);
+      const chunkSize = 400;
+      try {
+        for (let i = 0; i < targets.length; i += chunkSize) {
+          const batch = writeBatch(db);
+          targets.slice(i, i + chunkSize).forEach((order) => {
+            if (order.id) {
+              batch.update(doc(db, ORDERS_COLLECTION, order.id), { is_daily_cleared: true });
+            }
+          });
+          await batch.commit();
         }
-        return order;
-      });
-      saveOrders(updatedOrders);
+      } catch (error) {
+        console.error(error);
+        alert("重置失敗：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
+
       resetTodayOrderCounter();
-      openReportModal();
+      await openReportModal();
       alert("今日營收紀錄與取餐號碼已重置。");
     }
 
-    function clearMonthlyReport() {
+    async function clearMonthlyReport() {
       const input = prompt('此操作將清除本月全部營收資料，請輸入「確認清除」後送出：');
       if (input !== "確認清除") {
         alert("輸入不正確，已取消清除。");
@@ -2032,9 +2240,32 @@
       }
 
       const currentMonth = getMonthKey(new Date());
-      const remainingOrders = loadOrders().filter((order) => order.month !== currentMonth);
-      saveOrders(remainingOrders);
-      openMonthlyReportModal();
+      let monthOrders;
+      try {
+        monthOrders = await fetchOrdersByMonth(currentMonth);
+      } catch (error) {
+        console.error(error);
+        alert("載入本月資料失敗：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
+
+      const ids = monthOrders.map((order) => order.id).filter((id) => typeof id === "string" && id);
+      const chunkSize = 400;
+      try {
+        for (let i = 0; i < ids.length; i += chunkSize) {
+          const batch = writeBatch(db);
+          ids.slice(i, i + chunkSize).forEach((orderId) => {
+            batch.delete(doc(db, ORDERS_COLLECTION, orderId));
+          });
+          await batch.commit();
+        }
+      } catch (error) {
+        console.error(error);
+        alert("清除失敗：" + (error && error.message ? error.message : String(error)));
+        return;
+      }
+
+      await openMonthlyReportModal();
       alert("本月所有紀錄已清除。");
     }
 
@@ -2099,6 +2330,15 @@
 
     let hasBoundStaticUiEvents = false;
 
+    function runAsync(handler) {
+      return (...args) => {
+        Promise.resolve(handler(...args)).catch((error) => {
+          console.error(error);
+          alert("操作失敗：" + (error && error.message ? error.message : String(error)));
+        });
+      };
+    }
+
     function bindStaticUiEventsOnce() {
       if (hasBoundStaticUiEvents) return;
       hasBoundStaticUiEvents = true;
@@ -2116,16 +2356,16 @@
       checkoutBtn.addEventListener("click", checkoutOnly);
       checkoutPrintBtn.addEventListener("click", handleCheckoutAndPrint);
       openInventoryBtn.addEventListener("click", openInventoryModal);
-      openMonthlyRankingBtn.addEventListener("click", openMonthlyRankingModal);
-      openReportBtn.addEventListener("click", openReportModal);
-      openMonthlyReportBtn.addEventListener("click", openMonthlyReportModal);
-      openHistoryBtn.addEventListener("click", openHistoryModal);
+      openMonthlyRankingBtn.addEventListener("click", runAsync(openMonthlyRankingModal));
+      openReportBtn.addEventListener("click", runAsync(openReportModal));
+      openMonthlyReportBtn.addEventListener("click", runAsync(openMonthlyReportModal));
+      openHistoryBtn.addEventListener("click", runAsync(openHistoryModal));
       exportDataBtn.addEventListener("click", exportSystemData);
       importDataBtn.addEventListener("click", () => importDataInput.click());
       closeReportBtn.addEventListener("click", closeReportModal);
-      resetReportBtn.addEventListener("click", resetDailyReport);
+      resetReportBtn.addEventListener("click", runAsync(resetDailyReport));
       closeMonthlyReportBtn.addEventListener("click", closeMonthlyReportModal);
-      clearMonthlyReportBtn.addEventListener("click", clearMonthlyReport);
+      clearMonthlyReportBtn.addEventListener("click", runAsync(clearMonthlyReport));
       closeMonthlyRankingBtn.addEventListener("click", closeMonthlyRankingModal);
       closeHistoryBtn.addEventListener("click", closeHistoryModal);
       closeInventoryBtn.addEventListener("click", closeInventoryModal);
@@ -2133,8 +2373,8 @@
       inventoryCostInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") addInventoryItem();
       });
-      historyTabActive.addEventListener("click", () => switchHistoryTab("active"));
-      historyTabVoided.addEventListener("click", () => switchHistoryTab("voided"));
+      historyTabActive.addEventListener("click", runAsync(() => switchHistoryTab("active")));
+      historyTabVoided.addEventListener("click", runAsync(() => switchHistoryTab("voided")));
 
       importDataInput.addEventListener("change", (event) => {
         const target = event.target;
@@ -2169,14 +2409,24 @@
 
         if (target.classList.contains("history-void-btn")) {
           const idx = Number(target.dataset.index);
-          if (Number.isFinite(idx)) voidOrderByIndex(idx);
+          if (Number.isFinite(idx)) {
+            voidOrderByIndex(idx).catch((error) => {
+              console.error(error);
+              alert("作廢失敗：" + (error && error.message ? error.message : String(error)));
+            });
+          }
         }
 
         if (target.classList.contains("history-remove-item-btn")) {
           const idx = Number(target.dataset.index);
           const itemId = target.dataset.itemId;
           const itemName = target.dataset.itemName || "品項";
-          if (Number.isFinite(idx) && itemId) removeOneItemFromOrder(idx, itemId, itemName);
+          if (Number.isFinite(idx) && itemId) {
+            removeOneItemFromOrder(idx, itemId, itemName).catch((error) => {
+              console.error(error);
+              alert("更新失敗：" + (error && error.message ? error.message : String(error)));
+            });
+          }
         }
       });
 
@@ -2211,16 +2461,73 @@
 
     }
 
-    function initializeApp() {
+    function bootstrapPosApplication() {
       bindStaticUiEventsOnce();
       renderMenu();
       renderCart();
     }
 
+    const loginOverlayEl = document.getElementById("loginOverlay");
+    const posWorkspaceEl = document.getElementById("posWorkspace");
+    const loginErrorTextEl = document.getElementById("loginErrorText");
+    const loginEmailEl = document.getElementById("loginEmail");
+    const loginPasswordEl = document.getElementById("loginPassword");
+    const loginBtnEl = document.getElementById("loginBtn");
+
+    function setLoginError(message) {
+      if (loginErrorTextEl) {
+        loginErrorTextEl.textContent = message ? String(message) : "";
+      }
+    }
+
+    function performLogin() {
+      const email = loginEmailEl ? loginEmailEl.value.trim() : "";
+      const password = loginPasswordEl ? loginPasswordEl.value : "";
+      setLoginError("");
+      if (!email) {
+        setLoginError("請輸入 Email。");
+        return Promise.resolve();
+      }
+      return signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          if (loginPasswordEl) loginPasswordEl.value = "";
+        })
+        .catch((error) => {
+          setLoginError(error.message || String(error));
+        });
+    }
+
+    if (loginBtnEl) {
+      loginBtnEl.addEventListener("click", () => {
+        void performLogin();
+      });
+    }
+
+    if (loginPasswordEl) {
+      loginPasswordEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          void performLogin();
+        }
+      });
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (!loginOverlayEl || !posWorkspaceEl) return;
+      if (user) {
+        setLoginError("");
+        loginOverlayEl.classList.add("is-hidden");
+        posWorkspaceEl.hidden = false;
+      } else {
+        posWorkspaceEl.hidden = true;
+        loginOverlayEl.classList.remove("is-hidden");
+      }
+    });
+
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initializeApp, { once: true });
+      document.addEventListener("DOMContentLoaded", bootstrapPosApplication, { once: true });
     } else {
-      initializeApp();
+      bootstrapPosApplication();
     }
   </script>
 </body>
