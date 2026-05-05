@@ -37,8 +37,7 @@
     html,
     body {
       height: 100%;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     body {
@@ -54,23 +53,26 @@
       color: var(--text);
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
+      height: 100vh;
     }
 
     #posWorkspace {
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
     .app {
       padding: 12px;
       flex: 1;
-      min-height: 100vh;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      padding-bottom: 96px;
+      overflow: hidden;
+      padding-bottom: 20px;
     }
 
     .topbar {
@@ -161,13 +163,17 @@
 
     .layout {
       flex: 1;
+      min-height: 0;
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(300px, 30%);
       gap: 16px;
+      overflow: hidden;
     }
 
     .layout > .panel:first-child {
       min-width: 0;
+      min-height: 0;
+      height: 100%;
     }
 
     .layout > .panel:last-child {
@@ -178,12 +184,13 @@
 
     .app-logout-footer {
       position: fixed;
-      left: 20px;
+      left: 50%;
       bottom: 20px;
       z-index: 1000;
       display: flex;
-      justify-content: flex-start;
+      justify-content: center;
       align-items: center;
+      transform: translateX(-50%);
     }
 
     .btn-logout {
@@ -209,7 +216,8 @@
       padding: 20px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       border: 1px solid rgba(226, 232, 240, 0.9);
-      height: fit-content;
+      min-height: 0;
+      height: 100%;
       display: flex;
       flex-direction: column;
       position: sticky;
@@ -235,6 +243,10 @@
 
     .menu-panel {
       min-height: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .panel {
@@ -261,13 +273,14 @@
       gap: 15px;
       flex: 1;
       min-height: 0;
+      height: 100%;
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
       padding-right: 4px;
-      padding-bottom: 24px;
+      padding-bottom: 20px;
     }
 
     .menu-item {
@@ -471,13 +484,12 @@
       gap: 12px;
     }
 
-    .checkout-actions-fixed {
-      position: fixed;
-      right: 20px;
-      bottom: 20px;
-      z-index: 1000;
-      width: min(760px, calc(100vw - 40px));
-      justify-content: flex-end;
+    .checkout-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 10px;
     }
 
     .actions .btn {
@@ -1025,11 +1037,14 @@
     @media (max-width: 1024px) {
       .layout {
         grid-template-columns: 1fr;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
 
       .checkout-panel {
         position: static;
         top: auto;
+        height: auto;
       }
 
       .layout > .panel:first-child {
@@ -1055,16 +1070,8 @@
         grid-template-columns: 1fr;
       }
 
-      .checkout-actions-fixed {
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-        width: auto;
-      }
-
       .app-logout-footer {
-        left: 12px;
-        bottom: 74px;
+        bottom: 12px;
       }
 
       .floating-admin-actions {
@@ -1336,18 +1343,17 @@
           <span>總金額</span>
           <span id="totalAmount">$0</span>
         </div>
+        <div class="checkout-actions">
+          <button id="clearOrderBtn" class="btn btn-clear">清空訂單</button>
+          <button id="checkoutBtn" class="btn btn-checkout">僅結帳</button>
+          <button id="checkoutPrintBtn" class="btn btn-print">結帳並列印</button>
+        </div>
       </section>
     </div>
 
     <div class="app-logout-footer">
       <button type="button" id="logoutBtn" class="btn-logout">登出系統</button>
     </div>
-  </div>
-
-  <div class="actions checkout-actions-fixed">
-    <button id="clearOrderBtn" class="btn btn-clear">清空訂單</button>
-    <button id="checkoutBtn" class="btn btn-checkout">僅結帳</button>
-    <button id="checkoutPrintBtn" class="btn btn-print">結帳並列印</button>
   </div>
 
   <div class="floating-admin-actions">
