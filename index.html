@@ -1635,6 +1635,7 @@
     let cart = [];
     let historyTab = "active";
     let inventoryData = [];
+    let expandedHistoryOrderId = null;
 
     function formatMoney(value) {
       return "$" + value;
@@ -2492,6 +2493,8 @@
         todayOrders.forEach((order, index) => {
           const item = document.createElement("div");
           item.className = "history-item" + (order.status === "voided" ? " voided" : "");
+          const orderId = order.id || "";
+          const isExpanded = expandedHistoryOrderId && orderId && expandedHistoryOrderId === orderId;
           const orderNoText = "取餐號碼：" + formatOrderNumber(order.orderNo || 0);
           const timeText = "結帳時間：" + formatDateTime(new Date(order.timestamp));
           const totalText = "總金額：" + formatMoney(order.total);
@@ -2516,6 +2519,8 @@
             '<div class="history-actions">' +
             '<button class="btn btn-detail history-detail-btn" data-index="' +
             index +
+            '" data-order-id="' +
+            orderId +
             '">品項明細</button>' +
             (tabType === "active"
               ? '<button class="btn btn-void history-void-btn" data-index="' + index + '">作廢 (退單)</button>'
@@ -2524,6 +2529,8 @@
             "</div>" +
             '<div class="history-detail" id="historyDetail-' +
             index +
+            '" data-order-id="' +
+            orderId +
             '"></div>';
 
           historyList.appendChild(item);
@@ -2554,6 +2561,7 @@
             }
           });
           detailEl.innerHTML = itemRows.length > 0 ? itemRows.join("") : '<div class="empty">無品項明細</div>';
+          if (isExpanded) detailEl.classList.add("show");
         });
       }
     }
@@ -2565,6 +2573,7 @@
 
     async function switchHistoryTab(tabType) {
       historyTab = tabType === "voided" ? "voided" : "active";
+      expandedHistoryOrderId = null;
       syncHistoryTabsUI();
       await renderHistoryList(historyTab);
     }
@@ -2582,6 +2591,7 @@
     function closeHistoryModal() {
       historyModal.classList.remove("show");
       historyModal.setAttribute("aria-hidden", "true");
+      expandedHistoryOrderId = null;
       syncModalLockState();
     }
 
@@ -2621,6 +2631,7 @@
         alert("作廢失敗：" + (error && error.message ? error.message : String(error)));
         return;
       }
+      expandedHistoryOrderId = null;
       await renderHistoryList(historyTab);
       alert("訂單 " + orderNoText + " 已作廢。");
     }
@@ -2675,6 +2686,7 @@
         return;
       }
 
+      expandedHistoryOrderId = nextStatus === "voided" ? null : target.id;
       await renderHistoryList(historyTab);
       alert("已退除 1 份「" + itemName + "」。");
     }
@@ -2899,7 +2911,12 @@
           const idx = Number(target.dataset.index);
           if (!Number.isFinite(idx)) return;
           const detail = document.getElementById("historyDetail-" + idx);
-          if (detail) detail.classList.toggle("show");
+          if (detail) {
+            const orderId = target.dataset.orderId || detail.dataset.orderId || "";
+            const shouldShow = !detail.classList.contains("show");
+            detail.classList.toggle("show", shouldShow);
+            expandedHistoryOrderId = shouldShow && orderId ? orderId : null;
+          }
         }
 
         if (target.classList.contains("history-void-btn")) {
