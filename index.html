@@ -2193,7 +2193,7 @@
       document.documentElement.classList.toggle("modal-open", hasOpenModal);
     }
 
-    async function saveOrder() {
+    function prepareOrderForCheckout() {
       if (cart.length === 0) {
         return null;
       }
@@ -2203,16 +2203,37 @@
       const checkoutTime = new Date();
       const orderNo = issueOrderNumber();
       fillReceipt(snapshot, orderNo, checkoutTime, checkoutMeta.tableNumber, checkoutMeta.pickupTime);
-      await persistNewOrderToFirestore(
+      return {
         snapshot,
         checkoutTime,
         orderNo,
-        checkoutMeta.tableNumber,
-        checkoutMeta.pickupTime
-      );
-      return { snapshot, checkoutTime };
+        tableNumber: checkoutMeta.tableNumber,
+        pickupTime: checkoutMeta.pickupTime
+      };
     }
 
+    async function saveOrder() {
+      const preparedOrder = prepareOrderForCheckout();
+      if (!preparedOrder) return null;
+      await persistNewOrderToFirestore(
+        preparedOrder.snapshot,
+        preparedOrder.checkoutTime,
+        preparedOrder.orderNo,
+        preparedOrder.tableNumber,
+        preparedOrder.pickupTime
+      );
+      return preparedOrder;
+    }
+
+    async function persistPreparedOrder(preparedOrder) {
+      await persistNewOrderToFirestore(
+        preparedOrder.snapshot,
+        preparedOrder.checkoutTime,
+        preparedOrder.orderNo,
+        preparedOrder.tableNumber,
+        preparedOrder.pickupTime
+      );
+    }
     function collectSalesRanking(summary) {
       return MENU_ITEMS.map((item) => ({
         id: item.id,
@@ -2285,21 +2306,16 @@
     }
 
     async function handleCheckoutAndPrint() {
-      let order;
-      try {
-        order = await saveOrder();
-      } catch (error) {
-        console.error(error);
-        alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
-        return;
-      }
-      if (!order) {
+      const preparedOrder = prepareOrderForCheckout();
+      if (!preparedOrder) {
         alert("目前沒有任何品項。");
         return;
       }
+
       let hasFinalized = false;
+      let isPersisted = false;
       const finalizeAfterPrint = () => {
-        if (hasFinalized) return;
+        if (hasFinalized || !isPersisted) return;
         hasFinalized = true;
         clearCart();
         resetOrderMetaFields();
@@ -2320,6 +2336,15 @@
         window.removeEventListener("afterprint", afterPrintHandler);
         finalizeAfterPrint();
       }, 3500);
+
+      try {
+        await persistPreparedOrder(preparedOrder);
+        isPersisted = true;
+        finalizeAfterPrint();
+      } catch (error) {
+        console.error(error);
+        alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
+      }
     }
 
     async function checkoutOnly() {
