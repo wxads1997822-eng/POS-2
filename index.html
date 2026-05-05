@@ -29,6 +29,12 @@
       -webkit-user-select: none;
     }
 
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       margin: 0;
       font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
@@ -40,19 +46,27 @@
       background-attachment: fixed;
       background-position: center;
       color: var(--text);
-      height: 100vh;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
+    #posWorkspace {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
     .app {
       padding: 12px;
-      height: 100vh;
+      flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       gap: 12px;
       overflow: hidden;
+      padding-bottom: 96px;
     }
 
     .topbar {
@@ -148,27 +162,22 @@
 
     .layout > .panel:first-child {
       min-width: 0;
-      overflow: hidden;
     }
 
     .layout > .panel:last-child {
       width: 100%;
       max-width: 380px;
       justify-self: end;
-      align-self: start;
-      position: sticky;
-      top: 0;
-      height: 100%;
     }
 
     .app-logout-footer {
       position: fixed;
-      left: 18px;
-      bottom: 82px;
+      left: 20px;
+      bottom: 20px;
       z-index: 1000;
-      margin: 0;
-      padding: 0;
-      display: block;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
     }
 
     .btn-logout {
@@ -194,10 +203,10 @@
       padding: 20px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       border: 1px solid rgba(226, 232, 240, 0.9);
+      min-height: 0;
       height: 100%;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
     }
 
     .checkout-panel h2 {
@@ -214,6 +223,11 @@
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.62);
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+
+    .menu-panel {
+      min-height: 0;
+      overflow: hidden;
     }
 
     .panel {
@@ -238,9 +252,10 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 15px;
-      flex: 1 1 auto;
+      flex: 1;
       min-height: 0;
       overflow-y: auto;
+      overflow-x: hidden;
       padding-right: 4px;
       padding-bottom: 24px;
     }
@@ -299,7 +314,7 @@
     }
 
     .cart-list {
-      flex: 1 1 auto;
+      flex: 1;
       min-height: 0;
       overflow-y: auto;
       border: 1px solid rgba(255, 255, 255, 0.6);
@@ -309,9 +324,8 @@
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
-      min-height: 300px;
+      min-height: 220px;
       max-height: none;
-      padding-bottom: 120px;
     }
 
     .empty {
@@ -436,11 +450,15 @@
     .actions {
       display: flex;
       gap: 12px;
+    }
+
+    .checkout-actions-fixed {
       position: fixed;
-      right: 18px;
+      right: 20px;
       bottom: 20px;
       z-index: 1000;
-      width: min(380px, calc(100vw - 36px));
+      width: min(760px, calc(100vw - 40px));
+      justify-content: flex-end;
     }
 
     .actions .btn {
@@ -988,18 +1006,15 @@
     @media (max-width: 1024px) {
       .layout {
         grid-template-columns: 1fr;
-        overflow: hidden;
       }
 
       .layout > .panel:first-child {
         width: 100%;
-        overflow: hidden;
       }
 
       .layout > .panel:last-child {
         max-width: none;
         justify-self: stretch;
-        height: 100%;
       }
     }
 
@@ -1009,13 +1024,23 @@
       }
       .menu-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        padding-bottom: 28px;
+        padding-bottom: 18px;
       }
 
       .actions {
-        width: calc(100vw - 24px);
+        grid-template-columns: 1fr;
+      }
+
+      .checkout-actions-fixed {
+        left: 12px;
         right: 12px;
         bottom: 12px;
+        width: auto;
+      }
+
+      .app-logout-footer {
+        left: 12px;
+        bottom: 74px;
       }
 
       .floating-admin-actions {
@@ -1029,11 +1054,6 @@
       .monthly-ranking-btn {
         flex: 1;
         justify-content: center;
-      }
-
-      .app-logout-footer {
-        left: 12px;
-        bottom: 74px;
       }
 
       .inventory-form {
@@ -1292,17 +1312,18 @@
           <span>總金額</span>
           <span id="totalAmount">$0</span>
         </div>
-        <div class="actions">
-          <button id="clearOrderBtn" class="btn btn-clear">清空訂單</button>
-          <button id="checkoutBtn" class="btn btn-checkout">僅結帳</button>
-          <button id="checkoutPrintBtn" class="btn btn-print">結帳並列印</button>
-        </div>
       </section>
     </div>
 
     <div class="app-logout-footer">
       <button type="button" id="logoutBtn" class="btn-logout">登出系統</button>
     </div>
+  </div>
+
+  <div class="actions checkout-actions-fixed">
+    <button id="clearOrderBtn" class="btn btn-clear">清空訂單</button>
+    <button id="checkoutBtn" class="btn btn-checkout">僅結帳</button>
+    <button id="checkoutPrintBtn" class="btn btn-print">結帳並列印</button>
   </div>
 
   <div class="floating-admin-actions">
@@ -2072,8 +2093,8 @@
         modal.classList.remove("show");
         modal.setAttribute("aria-hidden", "true");
       });
-      document.body.style.overflow = "auto";
-      document.documentElement.style.overflow = "auto";
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
     }
 
     async function saveOrder() {
