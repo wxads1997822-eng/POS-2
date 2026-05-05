@@ -185,6 +185,14 @@
       border: 1px solid rgba(226, 232, 240, 0.9);
     }
 
+    .checkout-panel h2 {
+      color: #2e8b57;
+      font-weight: 800;
+      display: block;
+      text-align: center;
+      text-shadow: 0 0 6px rgba(57, 255, 20, 0.45);
+    }
+
     .menu-panel h2 {
       display: inline-block;
       padding: 6px 12px;
@@ -346,6 +354,67 @@
       text-align: right;
     }
 
+    .order-meta {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 12px 0 14px;
+    }
+
+    .order-meta-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .order-meta-field label {
+      display: block;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 800;
+      color: #2e8b57;
+      text-shadow: 0 0 6px rgba(57, 255, 20, 0.45);
+      margin-bottom: 6px;
+    }
+
+    .order-meta-input {
+      width: 100%;
+      min-height: 56px;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      background: #fff;
+    }
+
+    .order-meta-input::placeholder {
+      font-size: 19px;
+      font-weight: 600;
+    }
+
+    .order-meta-input:focus {
+      outline: 3px solid rgba(37, 99, 235, 0.2);
+      border-color: #2563eb;
+    }
+
+    .pickup-time-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pickup-time-separator {
+      font-size: 28px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1;
+      text-align: center;
+      user-select: none;
+    }
+
     .actions {
       display: flex;
       gap: 12px;
@@ -410,6 +479,26 @@
       margin: 0;
       font-size: 16px;
       font-weight: 700;
+    }
+
+    .receipt-meta {
+      border: 2px solid #000;
+      border-radius: 8px;
+      padding: 8px;
+      margin-top: 10px;
+      background: #fff;
+    }
+
+    .receipt-meta-line {
+      font-size: 26px;
+      line-height: 1.25;
+      font-weight: 900;
+      text-align: center;
+      margin: 0;
+    }
+
+    .receipt-meta-line + .receipt-meta-line {
+      margin-top: 4px;
     }
 
     .receipt-divider {
@@ -1140,6 +1229,28 @@
 
       <section class="panel checkout-panel">
         <h2>目前訂單與結帳</h2>
+        <div class="order-meta">
+          <div class="order-meta-field">
+            <label for="tableNumberInput">桌號 / 備註</label>
+            <input
+              id="tableNumberInput"
+              class="order-meta-input"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              step="1"
+              placeholder="請輸入桌號 (未填視同外帶)"
+            />
+          </div>
+          <div class="order-meta-field">
+            <label for="pickupHourSelect">預約取餐時間</label>
+            <div class="pickup-time-row">
+              <select id="pickupHourSelect" class="order-meta-input" aria-label="取餐小時"></select>
+              <span class="pickup-time-separator">:</span>
+              <select id="pickupMinuteSelect" class="order-meta-input" aria-label="取餐分鐘"></select>
+            </div>
+          </div>
+        </div>
         <div id="cartList" class="cart-list"></div>
         <div class="total">
           <span>總金額</span>
@@ -1238,6 +1349,10 @@
     <h1 id="receiptNo" class="receipt-no">取餐號碼：001</h1>
     <p id="receiptShop" class="receipt-shop">管飽</p>
     <p id="receiptTime" class="receipt-time">--</p>
+    <div class="receipt-meta">
+      <p id="receiptTableNumber" class="receipt-meta-line">桌號：外帶</p>
+      <p id="receiptPickupTime" class="receipt-meta-line">取餐時間：即時</p>
+    </div>
     <div class="receipt-divider"></div>
     <table class="receipt-table">
       <thead>
@@ -1307,6 +1422,8 @@
     const ORDER_COUNTER_KEY = "pos_order_counter_v1";
     const INVENTORY_STORAGE_KEY = "inventoryData";
     const SHOP_NAME = "管飽";
+    const REQUIRE_TABLE_NUMBER = false;
+    const DEFAULT_TABLE_NUMBER = "外帶";
 
     const MENU_ITEMS = [
       { id: "misua_s", name: "麵線 (小)", price: 45 },
@@ -1327,6 +1444,9 @@
     const clearOrderBtn = document.getElementById("clearOrderBtn");
     const checkoutBtn = document.getElementById("checkoutBtn");
     const checkoutPrintBtn = document.getElementById("checkoutPrintBtn");
+    const tableNumberInput = document.getElementById("tableNumberInput");
+    const pickupHourSelect = document.getElementById("pickupHourSelect");
+    const pickupMinuteSelect = document.getElementById("pickupMinuteSelect");
     const openReportBtn = document.getElementById("openReportBtn");
     const openInventoryBtn = document.getElementById("openInventoryBtn");
     const openMonthlyRankingBtn = document.getElementById("openMonthlyRankingBtn");
@@ -1366,6 +1486,8 @@
     const receiptTime = document.getElementById("receiptTime");
     const receiptItems = document.getElementById("receiptItems");
     const receiptTotal = document.getElementById("receiptTotal");
+    const receiptTableNumber = document.getElementById("receiptTableNumber");
+    const receiptPickupTime = document.getElementById("receiptPickupTime");
 
     let cart = [];
     let historyTab = "active";
@@ -1584,7 +1706,13 @@
         orderNo: Number.isFinite(Number(order.orderNo)) ? Math.floor(Number(order.orderNo)) : 0,
         status: order.status === "voided" ? "voided" : "active",
         lineItems: Array.isArray(order.lineItems) ? order.lineItems : [],
-        is_daily_cleared: order.is_daily_cleared === true
+        is_daily_cleared: order.is_daily_cleared === true,
+        table_number: typeof order.table_number === "string" && order.table_number.trim()
+          ? order.table_number.trim()
+          : DEFAULT_TABLE_NUMBER,
+        pickup_time: typeof order.pickup_time === "string" && order.pickup_time.trim()
+          ? order.pickup_time.trim()
+          : ""
       };
     }
 
@@ -1629,7 +1757,7 @@
       return list;
     }
 
-    async function persistNewOrderToFirestore(orderItems, checkoutTime, orderNo) {
+    async function persistNewOrderToFirestore(orderItems, checkoutTime, orderNo, tableNumber, pickupTime) {
       const date = getTodayKey(checkoutTime);
       const month = getMonthKey(checkoutTime);
       const orderTotal = orderItems.reduce((sum, item) => sum + item.price, 0);
@@ -1641,6 +1769,8 @@
         itemCounts,
         timestamp: Timestamp.fromDate(checkoutTime),
         orderNo,
+        table_number: tableNumber,
+        pickup_time: pickupTime,
         status: "active",
         lineItems: orderItems.map((item) => ({ id: item.id, name: item.name, price: item.price })),
         is_daily_cleared: false
@@ -1703,6 +1833,94 @@
       const minutes = String(dateObj.getMinutes()).padStart(2, "0");
       const seconds = String(dateObj.getSeconds()).padStart(2, "0");
       return year + "/" + month + "/" + day + " " + hours + ":" + minutes + ":" + seconds;
+    }
+
+    function formatTwoDigits(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function getCurrentTimeValue() {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const roundedMinutes = Math.ceil(currentMinutes / 5) * 5;
+      const safeMinutes = Math.min(roundedMinutes, 23 * 60 + 55);
+      const hours = formatTwoDigits(Math.floor(safeMinutes / 60));
+      const minutes = formatTwoDigits(safeMinutes % 60);
+      return hours + ":" + minutes;
+    }
+
+    function buildPickupTimeSelectOptions() {
+      if (!pickupHourSelect || !pickupMinuteSelect) return;
+      pickupHourSelect.innerHTML = "";
+      pickupMinuteSelect.innerHTML = "";
+
+      for (let hour = 0; hour <= 23; hour += 1) {
+        const value = formatTwoDigits(hour);
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        pickupHourSelect.appendChild(option);
+      }
+
+      for (let minute = 0; minute <= 55; minute += 5) {
+        const value = formatTwoDigits(minute);
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        pickupMinuteSelect.appendChild(option);
+      }
+    }
+
+    function timeStringToMinutes(timeValue) {
+      if (typeof timeValue !== "string" || !timeValue.includes(":")) return NaN;
+      const [hoursText, minutesText] = timeValue.split(":");
+      const hours = Number(hoursText);
+      const minutes = Number(minutesText);
+      if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return NaN;
+      if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return NaN;
+      return hours * 60 + minutes;
+    }
+
+    function ensurePickupTimeDefault() {
+      if (!pickupHourSelect || !pickupMinuteSelect) return;
+      if (!pickupHourSelect.value || !pickupMinuteSelect.value) {
+        const timeValue = getCurrentTimeValue();
+        const [hour, minute] = timeValue.split(":");
+        pickupHourSelect.value = hour;
+        pickupMinuteSelect.value = minute;
+      }
+    }
+
+    function getSelectedPickupTime() {
+      ensurePickupTimeDefault();
+      const hour = pickupHourSelect ? pickupHourSelect.value : "";
+      const minute = pickupMinuteSelect ? pickupMinuteSelect.value : "";
+      return hour && minute ? hour + ":" + minute : getCurrentTimeValue();
+    }
+
+    function resetOrderMetaFields() {
+      if (tableNumberInput) tableNumberInput.value = "";
+      const [hour, minute] = getCurrentTimeValue().split(":");
+      if (pickupHourSelect) pickupHourSelect.value = hour;
+      if (pickupMinuteSelect) pickupMinuteSelect.value = minute;
+    }
+
+    function resolveCheckoutMeta() {
+      const rawTable = tableNumberInput ? tableNumberInput.value.trim() : "";
+      if (REQUIRE_TABLE_NUMBER && !rawTable) {
+        alert("請先輸入桌號，才能確認結帳。");
+        return null;
+      }
+      const tableNumber = rawTable || DEFAULT_TABLE_NUMBER;
+      const pickupTime = getSelectedPickupTime();
+      const pickupMinutes = timeStringToMinutes(pickupTime);
+      const now = new Date();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      if (!Number.isFinite(pickupMinutes) || pickupMinutes < nowMinutes) {
+        alert("⚠️ 取餐時間不能早於現在時間喔！請重新確認。");
+        return null;
+      }
+      return { tableNumber, pickupTime };
     }
 
     function renderMenu() {
@@ -1778,10 +1996,16 @@
       return Object.values(map);
     }
 
-    function fillReceipt(orderItems, orderNumber, checkoutTime) {
+    function fillReceipt(orderItems, orderNumber, checkoutTime, tableNumber, pickupTime) {
       receiptNo.textContent = "取餐號碼：" + formatOrderNumber(orderNumber);
       receiptShop.textContent = SHOP_NAME;
       receiptTime.textContent = "結帳時間：" + formatDateTime(checkoutTime);
+      if (receiptTableNumber) {
+        receiptTableNumber.textContent = "桌號/備註：" + (tableNumber || DEFAULT_TABLE_NUMBER);
+      }
+      if (receiptPickupTime) {
+        receiptPickupTime.textContent = "取餐時間：" + (pickupTime || "即時");
+      }
       receiptItems.innerHTML = "";
 
       const summary = buildReceiptSummary(orderItems);
@@ -1817,11 +2041,19 @@
       if (cart.length === 0) {
         return null;
       }
+      const checkoutMeta = resolveCheckoutMeta();
+      if (!checkoutMeta) return null;
       const snapshot = cart.map((item) => ({ id: item.id, name: item.name, price: item.price }));
       const checkoutTime = new Date();
       const orderNo = issueOrderNumber();
-      fillReceipt(snapshot, orderNo, checkoutTime);
-      await persistNewOrderToFirestore(snapshot, checkoutTime, orderNo);
+      fillReceipt(snapshot, orderNo, checkoutTime, checkoutMeta.tableNumber, checkoutMeta.pickupTime);
+      await persistNewOrderToFirestore(
+        snapshot,
+        checkoutTime,
+        orderNo,
+        checkoutMeta.tableNumber,
+        checkoutMeta.pickupTime
+      );
       return { snapshot, checkoutTime };
     }
 
@@ -1914,6 +2146,7 @@
         if (hasFinalized) return;
         hasFinalized = true;
         clearCart();
+        resetOrderMetaFields();
         closeModal();
         alert("結帳成功");
       };
@@ -1947,6 +2180,7 @@
         return;
       }
       clearCart();
+      resetOrderMetaFields();
       closeModal();
       alert("結帳成功");
     }
@@ -2535,8 +2769,10 @@
 
     function bootstrapPosApplication() {
       bindStaticUiEventsOnce();
+      buildPickupTimeSelectOptions();
       renderMenu();
       renderCart();
+      resetOrderMetaFields();
     }
 
     const SAVED_EMAIL_KEY = "savedEmail";
