@@ -265,6 +265,8 @@
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       padding-right: 4px;
       padding-bottom: 24px;
     }
@@ -280,7 +282,7 @@
       user-select: none;
       -webkit-user-select: none;
       transition: transform 0.05s ease, box-shadow 0.15s ease;
-      touch-action: manipulation;
+      touch-action: pan-y;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
@@ -326,6 +328,8 @@
       flex: 1;
       min-height: 0;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       border: 1px solid rgba(255, 255, 255, 0.6);
       border-radius: 12px;
       padding: 10px;
