@@ -139,22 +139,16 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(300px, 30%);
       gap: 16px;
-      overflow: visible;
     }
 
     .layout > .panel:first-child {
       min-width: 0;
-      overflow: hidden;
     }
 
     .layout > .panel:last-child {
       width: 100%;
       max-width: 380px;
       justify-self: end;
-      align-self: start;
-      position: sticky;
-      top: 10px;
-      height: 100%;
     }
 
     .app-logout-footer {
@@ -207,10 +201,6 @@
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     }
 
-    .menu-panel {
-      overflow: hidden;
-    }
-
     .panel {
       background-color: transparent;
       border-radius: 18px;
@@ -233,8 +223,6 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 15px;
-      flex: 1 1 auto;
-      min-height: 0;
       overflow: auto;
       padding-right: 4px;
       padding-bottom: 102px;
@@ -467,19 +455,6 @@
       background: var(--success);
     }
 
-    .checkout-panel {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .checkout-panel .cart-list {
-      flex: 1 1 auto;
-      min-height: 0;
-      max-height: none;
-    }
-
     .receipt-print {
       display: none;
       width: 80mm;
@@ -567,10 +542,10 @@
     }
 
     .watermark-badge {
-      display: inline-block;
-      align-self: flex-start;
-      margin-top: 10px;
-      margin-bottom: 10px;
+      position: fixed;
+      bottom: 30px;
+      right: 20px;
+      z-index: 9999;
       padding: 6px 14px;
       border-radius: 50px;
       background-color: rgba(255, 255, 255, 0.4);
@@ -987,22 +962,24 @@
       align-items: center;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
       .layout {
         grid-template-columns: 1fr;
-        overflow: visible;
       }
 
       .layout > .panel:first-child {
         width: 100%;
-        overflow: visible;
       }
 
       .layout > .panel:last-child {
         max-width: none;
         justify-self: stretch;
-        position: static;
-        height: auto;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .layout {
+        grid-template-columns: 1fr;
       }
       .menu-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1246,7 +1223,6 @@
         <input id="importDataInput" type="file" accept=".json,application/json" hidden />
       </div>
     </div>
-    <div class="watermark-badge">峰專屬</div>
 
     <div class="layout">
       <section class="panel menu-panel">
@@ -1399,6 +1375,7 @@
     <p class="receipt-thanks">謝謝光臨</p>
   </section>
 
+  <div class="watermark-badge">峰專屬</div>
   </div>
 
   <script type="module">
@@ -1461,7 +1438,7 @@
       { id: "miso", name: "味噌湯", price: 25 },
       { id: "grass_jelly", name: "仙草蜜", price: 20 },
       { id: "combo", name: "套餐(豬肉咖哩飯+湯+仙草蜜)", price: 160 },
-      { id: "eco_discount", name: "環保碗折扣", price: -5, discount: true }
+      { id: "eco_discount", name: "環保碗折扣 (-$5)", price: -5, discount: true }
     ];
 
     const menuGrid = document.getElementById("menuGrid");
