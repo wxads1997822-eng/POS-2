@@ -414,24 +414,8 @@
     }
 
     @supports (-webkit-touch-callout: none) {
-      html,
-      body {
-        height: -webkit-fill-available;
-      }
-
-      body,
-      #posWorkspace {
-        min-height: -webkit-fill-available;
-        height: -webkit-fill-available;
-      }
-
       body {
         background-attachment: scroll;
-      }
-
-      .menu-grid,
-      .cart-list {
-        transform: translateZ(0);
       }
     }
 
@@ -2734,6 +2718,14 @@
 
     let hasBoundStaticUiEvents = false;
 
+    function syncAppViewportHeight() {
+      const viewportHeight = window.visualViewport && Number.isFinite(window.visualViewport.height)
+        ? window.visualViewport.height
+        : window.innerHeight;
+      if (!Number.isFinite(viewportHeight) || viewportHeight <= 0) return;
+      document.documentElement.style.setProperty("--app-height", viewportHeight + "px");
+    }
+
     function runAsync(handler) {
       return (...args) => {
         Promise.resolve(handler(...args)).catch((error) => {
@@ -2877,6 +2869,7 @@
     }
 
     function bootstrapPosApplication() {
+      syncAppViewportHeight();
       bindStaticUiEventsOnce();
       buildPickupTimeSelectOptions();
       renderMenu();
@@ -2958,6 +2951,13 @@
     }
 
     syncLoginFormFromSavedEmail();
+
+    window.addEventListener("resize", syncAppViewportHeight);
+    window.addEventListener("orientationchange", syncAppViewportHeight);
+    window.addEventListener("pageshow", syncAppViewportHeight);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", syncAppViewportHeight);
+    }
 
     onAuthStateChanged(auth, (user) => {
       if (!loginOverlayEl || !posWorkspaceEl) return;
