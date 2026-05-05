@@ -139,7 +139,7 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(300px, 30%);
       gap: 16px;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .layout > .panel:first-child {
@@ -151,8 +151,9 @@
       width: 100%;
       max-width: 380px;
       justify-self: end;
+      align-self: start;
       position: sticky;
-      top: 0;
+      top: 10px;
       height: 100%;
     }
 
@@ -204,6 +205,10 @@
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.62);
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+
+    .menu-panel {
+      overflow: hidden;
     }
 
     .panel {
@@ -1456,7 +1461,7 @@
       { id: "miso", name: "味噌湯", price: 25 },
       { id: "grass_jelly", name: "仙草蜜", price: 20 },
       { id: "combo", name: "套餐(豬肉咖哩飯+湯+仙草蜜)", price: 160 },
-      { id: "eco_discount", name: "環保碗折扣 (-$5)", price: -5, discount: true }
+      { id: "eco_discount", name: "環保碗折扣", price: -5, discount: true }
     ];
 
     const menuGrid = document.getElementById("menuGrid");
