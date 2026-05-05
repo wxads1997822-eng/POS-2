@@ -643,16 +643,29 @@
       pointer-events: none;
     }
 
+    body.modal-open {
+      overflow: hidden !important;
+    }
+
+    html.modal-open {
+      overflow: hidden !important;
+    }
+
+    body.modal-open #posWorkspace {
+      pointer-events: none;
+      touch-action: none;
+    }
+
     /* Modal */
     .modal {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.5);
       display: none;
       align-items: center;
       justify-content: center;
       padding: 18px;
-      z-index: 999;
+      z-index: 9999;
     }
 
     .modal.show {
@@ -778,9 +791,10 @@
     }
 
     /* Daily report modal: compact card layout */
-    #reportModal .modal-card {
-      width: min(500px, 100%);
-      max-width: 500px;
+    #reportModal .modal-card,
+    #monthlyReportModal .modal-card {
+      width: min(80vw, 920px);
+      max-width: 920px;
       padding: 20px 18px 18px;
     }
 
@@ -1757,12 +1771,14 @@
       renderInventoryList();
       inventoryModal.classList.add("show");
       inventoryModal.setAttribute("aria-hidden", "false");
+      syncModalLockState();
       inventoryNameInput.focus();
     }
 
     function closeInventoryModal() {
       inventoryModal.classList.remove("show");
       inventoryModal.setAttribute("aria-hidden", "true");
+      syncModalLockState();
     }
 
     function createInitialReport() {
@@ -2154,8 +2170,15 @@
         modal.classList.remove("show");
         modal.setAttribute("aria-hidden", "true");
       });
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
+      syncModalLockState();
+    }
+
+    function syncModalLockState() {
+      const hasOpenModal = [reportModal, monthlyReportModal, monthlyRankingModal, historyModal, inventoryModal].some(
+        (modal) => modal && modal.classList.contains("show")
+      );
+      document.body.classList.toggle("modal-open", hasOpenModal);
+      document.documentElement.classList.toggle("modal-open", hasOpenModal);
     }
 
     async function saveOrder() {
@@ -2333,11 +2356,13 @@
 
       reportModal.classList.add("show");
       reportModal.setAttribute("aria-hidden", "false");
+      syncModalLockState();
     }
 
     function closeReportModal() {
       reportModal.classList.remove("show");
       reportModal.setAttribute("aria-hidden", "true");
+      syncModalLockState();
     }
 
     async function openMonthlyReportModal() {
@@ -2369,11 +2394,13 @@
 
       monthlyReportModal.classList.add("show");
       monthlyReportModal.setAttribute("aria-hidden", "false");
+      syncModalLockState();
     }
 
     function closeMonthlyReportModal() {
       monthlyReportModal.classList.remove("show");
       monthlyReportModal.setAttribute("aria-hidden", "true");
+      syncModalLockState();
     }
 
     async function openMonthlyRankingModal() {
@@ -2391,11 +2418,13 @@
       renderSalesRanking(monthlyRankingList, ranking, "本月尚無銷售資料");
       monthlyRankingModal.classList.add("show");
       monthlyRankingModal.setAttribute("aria-hidden", "false");
+      syncModalLockState();
     }
 
     function closeMonthlyRankingModal() {
       monthlyRankingModal.classList.remove("show");
       monthlyRankingModal.setAttribute("aria-hidden", "true");
+      syncModalLockState();
     }
 
     async function renderHistoryList(tabType) {
@@ -2510,11 +2539,13 @@
 
       historyModal.classList.add("show");
       historyModal.setAttribute("aria-hidden", "false");
+      syncModalLockState();
     }
 
     function closeHistoryModal() {
       historyModal.classList.remove("show");
       historyModal.setAttribute("aria-hidden", "true");
+      syncModalLockState();
     }
 
     async function getTodayOrdersSorted() {
