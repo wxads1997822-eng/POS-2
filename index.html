@@ -269,8 +269,8 @@
 
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
       flex: 1;
       min-height: 0;
       height: 100%;
@@ -280,15 +280,15 @@
       overscroll-behavior: contain;
       touch-action: pan-y;
       padding-right: 4px;
-      padding-bottom: 20px;
+      padding-bottom: 150px;
     }
 
     .menu-item {
       border: 1px solid rgba(255, 255, 255, 0.6);
       background-color: rgba(255, 255, 255, 0.55);
       border-radius: 12px;
-      padding: 20px;
-      min-height: 110px;
+      padding: 8px 10px;
+      min-height: 80px;
       text-align: left;
       cursor: pointer;
       user-select: none;
@@ -310,17 +310,18 @@
 
     .menu-item strong {
       display: block;
-      font-size: 20px;
-      margin-bottom: 8px;
-      line-height: 1.35;
+      font-size: 16px;
+      margin-bottom: 4px;
+      line-height: 1.25;
       color: #212529;
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+      word-break: break-word;
     }
 
     .menu-item span {
-      font-size: 18px;
+      font-size: 15px;
       color: #212529;
-      line-height: 1.3;
+      line-height: 1.2;
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
     }
 
@@ -1062,8 +1063,8 @@
         grid-template-columns: 1fr;
       }
       .menu-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        padding-bottom: 18px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        padding-bottom: 150px;
       }
 
       .actions {
