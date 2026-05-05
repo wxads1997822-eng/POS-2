@@ -6,7 +6,6 @@
   <title>平板 POS</title>
   <style>
     :root {
-      --app-height: 100vh;
       --bg: #f2f4f7;
       --card: #ffffff;
       --text: #1f2937;
@@ -38,9 +37,8 @@
     html,
     body {
       height: 100%;
-      min-height: 100%;
-      overflow: hidden;
-      overscroll-behavior: none;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     body {
@@ -56,27 +54,22 @@
       color: var(--text);
       display: flex;
       flex-direction: column;
-      height: var(--app-height);
+      min-height: 100vh;
     }
 
     #posWorkspace {
       flex: 1;
-      min-height: 0;
-      height: var(--app-height);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
     }
 
     .app {
       padding: 12px;
       flex: 1;
-      height: 100%;
-      min-height: 0;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      overflow: hidden;
       padding-bottom: 96px;
     }
 
@@ -168,11 +161,9 @@
 
     .layout {
       flex: 1;
-      min-height: 0;
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(300px, 30%);
       gap: 16px;
-      overflow: hidden;
     }
 
     .layout > .panel:first-child {
@@ -218,10 +209,12 @@
       padding: 20px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       border: 1px solid rgba(226, 232, 240, 0.9);
-      min-height: 0;
-      height: 100%;
+      height: fit-content;
       display: flex;
       flex-direction: column;
+      position: sticky;
+      top: 20px;
+      align-self: start;
     }
 
     .checkout-panel h2 {
@@ -242,7 +235,6 @@
 
     .menu-panel {
       min-height: 0;
-      overflow: hidden;
     }
 
     .panel {
@@ -405,12 +397,6 @@
       font-weight: 800;
       color: #111827;
       text-align: right;
-    }
-
-    @supports (height: 100dvh) {
-      :root {
-        --app-height: 100dvh;
-      }
     }
 
     @supports (-webkit-touch-callout: none) {
@@ -1039,6 +1025,11 @@
     @media (max-width: 1024px) {
       .layout {
         grid-template-columns: 1fr;
+      }
+
+      .checkout-panel {
+        position: static;
+        top: auto;
       }
 
       .layout > .panel:first-child {
@@ -2126,8 +2117,8 @@
         modal.classList.remove("show");
         modal.setAttribute("aria-hidden", "true");
       });
-      document.body.style.overflow = "hidden";
-      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     }
 
     async function saveOrder() {
@@ -2718,14 +2709,6 @@
 
     let hasBoundStaticUiEvents = false;
 
-    function syncAppViewportHeight() {
-      const viewportHeight = window.visualViewport && Number.isFinite(window.visualViewport.height)
-        ? window.visualViewport.height
-        : window.innerHeight;
-      if (!Number.isFinite(viewportHeight) || viewportHeight <= 0) return;
-      document.documentElement.style.setProperty("--app-height", viewportHeight + "px");
-    }
-
     function runAsync(handler) {
       return (...args) => {
         Promise.resolve(handler(...args)).catch((error) => {
@@ -2869,7 +2852,6 @@
     }
 
     function bootstrapPosApplication() {
-      syncAppViewportHeight();
       bindStaticUiEventsOnce();
       buildPickupTimeSelectOptions();
       renderMenu();
@@ -2951,13 +2933,6 @@
     }
 
     syncLoginFormFromSavedEmail();
-
-    window.addEventListener("resize", syncAppViewportHeight);
-    window.addEventListener("orientationchange", syncAppViewportHeight);
-    window.addEventListener("pageshow", syncAppViewportHeight);
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", syncAppViewportHeight);
-    }
 
     onAuthStateChanged(auth, (user) => {
       if (!loginOverlayEl || !posWorkspaceEl) return;
