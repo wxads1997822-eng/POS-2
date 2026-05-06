@@ -2514,7 +2514,21 @@
 
     function buildPassPrntDeepLink(htmlContent) {
       const encodedHtml = encodeURIComponent(htmlContent);
-      return "starpassprnt://v1/print/nopreview?html=" + encodedHtml;
+      const backUrl = encodeURIComponent(window.location.href);
+      return "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
+    }
+
+    function triggerPassPrntWithHiddenIframe(passprntUrl) {
+      const frame = document.createElement("iframe");
+      frame.style.display = "none";
+      frame.setAttribute("aria-hidden", "true");
+      frame.src = passprntUrl;
+      document.body.appendChild(frame);
+      setTimeout(() => {
+        if (frame.parentNode) {
+          frame.parentNode.removeChild(frame);
+        }
+      }, 4000);
     }
 
     async function handleCheckoutAndPrint(event) {
@@ -2534,11 +2548,12 @@
         const receiptHtml = buildPassPrntReceiptHtml(preparedOrder);
         const passprntUrl = buildPassPrntDeepLink(receiptHtml);
         clearCart();
+        hidePrintReceiptLink();
         resetOrderMetaFields();
         closeModal();
         clearPrintBlockingState();
-        showPrintReceiptLink(passprntUrl);
-        alert("結帳成功！請點擊下方「確認列印收據」。");
+        triggerPassPrntWithHiddenIframe(passprntUrl);
+        alert("結帳成功，已送出列印指令。");
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
@@ -3057,7 +3072,7 @@
             alert("尚未產生列印內容，請先完成結帳。");
             return false;
           }
-          window.location.assign(href);
+          triggerPassPrntWithHiddenIframe(href);
           return false;
         });
       }
