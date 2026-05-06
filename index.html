@@ -2461,41 +2461,11 @@
       );
     }
 
-    function printReceiptWithIframe(receiptHtml) {
-      const printFrame = document.createElement("iframe");
-      printFrame.setAttribute("aria-hidden", "true");
-      printFrame.style.position = "fixed";
-      printFrame.style.right = "0";
-      printFrame.style.bottom = "0";
-      printFrame.style.width = "0";
-      printFrame.style.height = "0";
-      printFrame.style.border = "0";
-      printFrame.style.visibility = "hidden";
-      document.body.appendChild(printFrame);
-
-      const printDoc = printFrame.contentDocument || (printFrame.contentWindow && printFrame.contentWindow.document);
-      const frameWindow = printFrame.contentWindow;
-      if (!printDoc || !frameWindow) {
-        printFrame.remove();
-        throw new Error("無法建立列印視窗");
-      }
-
-      const cleanup = () => {
-        window.removeEventListener("focus", cleanup);
-        if (printFrame.parentNode) {
-          printFrame.parentNode.removeChild(printFrame);
-        }
-      };
-
-      frameWindow.addEventListener("afterprint", cleanup, { once: true });
-      window.addEventListener("focus", cleanup, { once: true });
-
-      printDoc.open();
-      printDoc.write(receiptHtml);
-      printDoc.close();
-
-      frameWindow.focus();
-      frameWindow.print();
+    function openPassPrntDeepLink(receiptHtml) {
+      const encodedHtml = encodeURIComponent(receiptHtml);
+      const backUrl = encodeURIComponent(window.location.href);
+      const passPrntUrl = "starpassprnt://v1/print/process?back=" + backUrl + "&html=" + encodedHtml;
+      window.location.href = passPrntUrl;
     }
 
     async function handleCheckoutAndPrint() {
@@ -2514,7 +2484,7 @@
         resetOrderMetaFields();
         closeModal();
         clearPrintBlockingState();
-        printReceiptWithIframe(receiptHtml);
+        openPassPrntDeepLink(receiptHtml);
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
