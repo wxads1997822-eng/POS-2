@@ -542,63 +542,57 @@
       display: none;
       width: 80mm;
       margin: 0 auto;
-      padding: 8mm 6mm;
+      padding: 5mm 4mm 0;
       background: #fff;
       color: #000;
       font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      font-size: 14pt;
+      line-height: 1.35;
     }
 
-    .receipt-no {
-      font-size: 46px;
-      line-height: 1.1;
-      font-weight: 900;
-      text-align: center;
-      margin: 0 0 8px;
-    }
-
-    .receipt-shop,
-    .receipt-time {
-      text-align: center;
+    .receipt-brand {
       margin: 0;
-      font-size: 16px;
-      font-weight: 700;
+      text-align: center;
+      font-size: 16pt;
+      font-weight: 900;
+      letter-spacing: 0.3px;
     }
 
     .receipt-meta {
-      border: 2px solid #000;
-      border-radius: 8px;
-      padding: 8px;
-      margin-top: 10px;
-      background: #fff;
+      margin-top: 2mm;
     }
 
     .receipt-meta-line {
-      font-size: 26px;
-      line-height: 1.25;
-      font-weight: 900;
-      text-align: center;
       margin: 0;
-    }
-
-    .receipt-meta-line + .receipt-meta-line {
-      margin-top: 4px;
+      text-align: left;
+      font-size: 14pt;
+      font-weight: 700;
     }
 
     .receipt-divider {
       border-top: 1px dashed #000;
-      margin: 10px 0;
+      margin: 3mm 0;
     }
 
     .receipt-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      table-layout: fixed;
     }
 
     .receipt-table th,
     .receipt-table td {
-      padding: 4px 0;
+      padding: 1.5mm 0;
+      font-size: 14pt;
+      font-weight: 600;
+    }
+
+    .receipt-table th:nth-child(1),
+    .receipt-table td:nth-child(1) {
       text-align: left;
+      width: 52%;
+      word-break: break-word;
+      padding-right: 2mm;
     }
 
     .receipt-table th:nth-child(2),
@@ -607,21 +601,24 @@
     .receipt-table td:nth-child(3) {
       text-align: right;
       white-space: nowrap;
+      width: 24%;
     }
 
     .receipt-total {
       display: flex;
       justify-content: space-between;
-      font-size: 18px;
+      align-items: baseline;
+      font-size: 16pt;
       font-weight: 900;
-      margin-top: 8px;
+      margin: 2mm 0 0;
     }
 
     .receipt-thanks {
       text-align: center;
-      font-size: 18px;
-      font-weight: 800;
-      margin: 16px 0 0;
+      font-size: 14pt;
+      font-weight: 700;
+      margin: 2mm 0 0;
+      padding-bottom: 0;
     }
 
     .watermark-badge {
@@ -1290,10 +1287,23 @@
         margin: 0;
       }
 
+      html,
+      body,
+      #posWorkspace,
+      #receiptPrint {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
+
       body {
         background: #fff;
         background-image: none !important;
         background-attachment: initial !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
 
       .app,
@@ -1321,6 +1331,15 @@
 
       .receipt-print {
         display: block !important;
+        margin: 0 !important;
+        padding-bottom: 0 !important;
+        break-inside: avoid;
+      }
+
+      .receipt-thanks,
+      .receipt-print > *:last-child {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
       }
 
       .login-overlay {
@@ -1490,12 +1509,11 @@
   </div>
 
   <section id="receiptPrint" class="receipt-print" aria-hidden="true">
-    <h1 id="receiptNo" class="receipt-no">取餐號碼：001</h1>
-    <p id="receiptShop" class="receipt-shop">管飽</p>
-    <p id="receiptTime" class="receipt-time">--</p>
+    <h1 class="receipt-brand">管飽 (Guanbao)</h1>
     <div class="receipt-meta">
       <p id="receiptTableNumber" class="receipt-meta-line">桌號：外帶</p>
-      <p id="receiptPickupTime" class="receipt-meta-line">取餐時間：即時</p>
+      <p id="receiptPickupTime" class="receipt-meta-line">預約取餐時間：即時</p>
+      <p id="receiptOrderNo" class="receipt-meta-line">訂單編號：GB0001</p>
     </div>
     <div class="receipt-divider"></div>
     <table class="receipt-table">
@@ -1503,17 +1521,17 @@
         <tr>
           <th>品項</th>
           <th>數量</th>
-          <th>小計</th>
+          <th>單價</th>
         </tr>
       </thead>
       <tbody id="receiptItems"></tbody>
     </table>
     <div class="receipt-divider"></div>
     <div class="receipt-total">
-      <span>總金額</span>
+      <span>總計：</span>
       <span id="receiptTotal">$0</span>
     </div>
-    <p class="receipt-thanks">謝謝光臨</p>
+    <p class="receipt-thanks">謝謝惠顧！</p>
   </section>
 
   </div>
@@ -1624,9 +1642,7 @@
     const inventoryList = document.getElementById("inventoryList");
     const inventoryTotalCost = document.getElementById("inventoryTotalCost");
     const closeInventoryBtn = document.getElementById("closeInventoryBtn");
-    const receiptNo = document.getElementById("receiptNo");
-    const receiptShop = document.getElementById("receiptShop");
-    const receiptTime = document.getElementById("receiptTime");
+    const receiptOrderNo = document.getElementById("receiptOrderNo");
     const receiptItems = document.getElementById("receiptItems");
     const receiptTotal = document.getElementById("receiptTotal");
     const receiptTableNumber = document.getElementById("receiptTableNumber");
@@ -2138,23 +2154,22 @@
       const map = {};
       orderItems.forEach((item) => {
         if (!map[item.id]) {
-          map[item.id] = { name: item.name, qty: 0, subtotal: 0 };
+          map[item.id] = { name: item.name, qty: 0, unitPrice: item.price };
         }
         map[item.id].qty += 1;
-        map[item.id].subtotal += item.price;
       });
       return Object.values(map);
     }
 
     function fillReceipt(orderItems, orderNumber, checkoutTime, tableNumber, pickupTime) {
-      receiptNo.textContent = "取餐號碼：" + formatOrderNumber(orderNumber);
-      receiptShop.textContent = SHOP_NAME;
-      receiptTime.textContent = "結帳時間：" + formatDateTime(checkoutTime);
       if (receiptTableNumber) {
-        receiptTableNumber.textContent = "桌號/備註：" + (tableNumber || DEFAULT_TABLE_NUMBER);
+        receiptTableNumber.textContent = "桌號：" + (tableNumber || DEFAULT_TABLE_NUMBER);
       }
       if (receiptPickupTime) {
-        receiptPickupTime.textContent = "取餐時間：" + (pickupTime || "即時");
+        receiptPickupTime.textContent = "預約取餐時間：" + (pickupTime || "即時");
+      }
+      if (receiptOrderNo) {
+        receiptOrderNo.textContent = "訂單編號：" + formatOrderNumber(orderNumber);
       }
       receiptItems.innerHTML = "";
 
@@ -2169,7 +2184,7 @@
           line.qty +
           "</td>" +
           "<td>" +
-          formatMoney(line.subtotal) +
+          formatMoney(line.unitPrice) +
           "</td>";
         receiptItems.appendChild(tr);
       });
@@ -2313,35 +2328,13 @@
         return;
       }
 
-      let hasFinalized = false;
-      let isPersisted = false;
-      const finalizeAfterPrint = () => {
-        if (hasFinalized || !isPersisted) return;
-        hasFinalized = true;
+      try {
+        await persistPreparedOrder(preparedOrder);
+        window.print();
         clearCart();
         resetOrderMetaFields();
         closeModal();
-        alert("結帳成功");
-      };
-
-      const afterPrintHandler = () => {
-        window.removeEventListener("afterprint", afterPrintHandler);
-        setTimeout(finalizeAfterPrint, 1500);
-      };
-
-      window.addEventListener("afterprint", afterPrintHandler);
-      window.print();
-
-      // iOS Safari 有時不會穩定觸發 afterprint，使用 fallback 確保流程可完成
-      setTimeout(() => {
-        window.removeEventListener("afterprint", afterPrintHandler);
-        finalizeAfterPrint();
-      }, 3500);
-
-      try {
-        await persistPreparedOrder(preparedOrder);
-        isPersisted = true;
-        finalizeAfterPrint();
+        alert("結帳成功，已開啟列印預覽。");
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
