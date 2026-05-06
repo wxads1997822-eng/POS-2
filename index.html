@@ -2342,6 +2342,73 @@
       });
     }
 
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function buildPassPrntReceiptHtml(preparedOrder) {
+      const summary = buildReceiptSummary(preparedOrder.snapshot);
+      const rowsHtml = summary
+        .map(
+          (line) =>
+            '<tr>' +
+            '<td style="padding:3px 0;text-align:left;word-break:break-word;">' +
+            escapeHtml(line.name) +
+            "</td>" +
+            '<td style="padding:3px 0;text-align:right;white-space:nowrap;">' +
+            line.qty +
+            "</td>" +
+            '<td style="padding:3px 0;text-align:right;white-space:nowrap;">' +
+            escapeHtml(formatMoney(line.unitPrice)) +
+            "</td>" +
+            "</tr>"
+        )
+        .join("");
+      const tableText = escapeHtml(preparedOrder.tableNumber || DEFAULT_TABLE_NUMBER);
+      const checkoutTimeText = escapeHtml(formatDateTime(preparedOrder.checkoutTime));
+      const orderNoText = escapeHtml(formatOrderNumber(preparedOrder.orderNo));
+      const totalText = escapeHtml(
+        formatMoney(preparedOrder.snapshot.reduce((sum, item) => sum + Number(item.price || 0), 0))
+      );
+
+      return (
+        '<html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;width:80mm;font-family:\'Noto Sans TC\',\'Microsoft JhengHei\',sans-serif;color:#000;font-size:14pt;line-height:1.35;">' +
+        '<div style="padding:5mm 4mm 0;">' +
+        '<h1 style="margin:0;text-align:center;font-size:16pt;font-weight:900;">管飽 (Guanbao)</h1>' +
+        '<p style="margin:2mm 0 0;font-size:14pt;font-weight:700;">桌號：' +
+        tableText +
+        "</p>" +
+        '<p style="margin:0;font-size:14pt;font-weight:700;">時間：' +
+        checkoutTimeText +
+        "</p>" +
+        '<p style="margin:0;font-size:14pt;font-weight:700;">訂單編號：' +
+        orderNoText +
+        "</p>" +
+        '<div style="border-top:1px dashed #000;margin:3mm 0;"></div>' +
+        '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">' +
+        "<thead><tr>" +
+        '<th style="padding:3px 0;text-align:left;width:52%;padding-right:2mm;">品項</th>' +
+        '<th style="padding:3px 0;text-align:right;width:24%;">數量</th>' +
+        '<th style="padding:3px 0;text-align:right;width:24%;">單價</th>' +
+        "</tr></thead>" +
+        "<tbody>" +
+        rowsHtml +
+        "</tbody></table>" +
+        '<div style="border-top:1px dashed #000;margin:3mm 0;"></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:16pt;font-weight:900;">' +
+        "<span>總計：</span><span>" +
+        totalText +
+        "</span></div>" +
+        '<p style="text-align:center;font-size:14pt;font-weight:700;margin:2mm 0 0;padding-bottom:0;">謝謝惠顧！</p>' +
+        "</div></body></html>"
+      );
+    }
+
     async function handleCheckoutAndPrint() {
       const preparedOrder = prepareOrderForCheckout();
       if (!preparedOrder) {
@@ -2349,27 +2416,19 @@
         return;
       }
 
-      // iOS Safari 需要在使用者點擊觸發鏈上同步呼叫 print，避免被防護機制攔截
       forceCloseUiBeforePrint();
-      let printTriggered = false;
-      try {
-        window.print();
-        printTriggered = true;
-      } catch (printError) {
-        console.error("列印視窗開啟失敗：", printError);
-      }
 
       try {
         await persistPreparedOrder(preparedOrder);
+        const receiptHtml = buildPassPrntReceiptHtml(preparedOrder);
+        const encodedHtml = encodeURIComponent(receiptHtml);
+        const backUrl = encodeURIComponent(window.location.href);
+        const passPrntUrl = "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
         clearCart();
         resetOrderMetaFields();
         closeModal();
         clearPrintBlockingState();
-        if (printTriggered) {
-          alert("結帳成功，已開啟列印預覽。");
-        } else {
-          alert("結帳成功（列印視窗可能被瀏覽器阻擋，請手動再印一次）。");
-        }
+        window.location.href = passPrntUrl;
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
