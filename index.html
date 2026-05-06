@@ -2397,74 +2397,39 @@
         .replace(/'/g, "&#39;");
     }
 
-    function buildReceiptPrintHtml(preparedOrder) {
+    function buildPassPrntReceiptText(preparedOrder) {
       const summary = buildReceiptSummary(preparedOrder.snapshot);
       const pickupTimeRaw = preparedOrder.pickupTime ? String(preparedOrder.pickupTime).trim() : "";
-      const orderTypeLineHtml = preparedOrder.isReservation
-        ? '<p style="margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;">預約取餐：' +
-          escapeHtml(pickupTimeRaw || "現場候位") +
-          "</p>"
-        : '<p style="margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;">單別：現場單</p>';
-      const rowsHtml = summary
-        .map(
-          (line) =>
-            '<tr>' +
-            '<td style="padding:8px 0;text-align:left;width:60%;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">' +
-            escapeHtml(line.name) +
-            "</td>" +
-            '<td style="padding:8px 0;text-align:center;width:15%;white-space:nowrap;">' +
-            line.qty +
-            "</td>" +
-            '<td style="padding:8px 0;text-align:right;width:25%;white-space:nowrap;">' +
-            escapeHtml(formatMoney(line.unitPrice)) +
-            "</td>" +
-            "</tr>"
-        )
-        .join("");
-      const tableText = escapeHtml(preparedOrder.tableNumber || DEFAULT_TABLE_NUMBER);
-      const checkoutTimeText = escapeHtml(formatDateTime(preparedOrder.checkoutTime));
-      const orderNoText = escapeHtml(formatOrderNumber(preparedOrder.orderNo));
-      const totalText = escapeHtml(
-        formatMoney(preparedOrder.snapshot.reduce((sum, item) => sum + Number(item.price || 0), 0))
-      );
-
-      return (
-        '<html><head><meta charset="UTF-8"><style>@page{size:80mm auto;margin:0;}html,body{height:auto!important;min-height:0!important;margin:0;padding:0;}@media print{html,body{height:auto!important;min-height:0!important;overflow:visible!important;}body{margin:0!important;padding:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body style="margin:0;padding:0;width:80mm;font-family:sans-serif;font-size:40px;font-weight:bold;color:#000;">' +
-        '<div style="width:100%;margin:0;padding:0;font-family:sans-serif;font-size:40px;font-weight:bold;line-height:1.6;color:#000;">' +
-        '<h1 style="text-align:center;font-size:52px;font-weight:bold;margin:0 0 15px;">管飽 (Kuanbao)</h1>' +
-        '<p style="margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;">桌號：' +
-        tableText +
-        "</p>" +
-        '<p style="margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;">時間：' +
-        checkoutTimeText +
-        "</p>" +
-        '<p style="margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;">訂單編號：' +
-        orderNoText +
-        "</p>" +
-        orderTypeLineHtml +
-        '<div style="border-bottom:2px dashed #000;margin:10px 0;"></div>' +
-        '<table style="width:100%;border-collapse:collapse;margin-top:15px;margin-bottom:15px;font-size:40px;font-weight:bold;table-layout:fixed;">' +
-        "<thead><tr>" +
-        '<th style="padding:8px 0;text-align:left;width:60%;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">品項</th>' +
-        '<th style="padding:8px 0;text-align:center;width:15%;">數量</th>' +
-        '<th style="padding:8px 0;text-align:right;width:25%;">單價</th>' +
-        "</tr></thead>" +
-        "<tbody>" +
-        rowsHtml +
-        "</tbody></table>" +
-        '<div style="border-bottom:2px dashed #000;margin:10px 0;"></div>' +
-        '<div style="font-size:48px;font-weight:bold;text-align:right;line-height:1.6;">總計：' +
-        totalText +
-        "</div>" +
-        '<p style="text-align:center;font-size:40px;font-weight:bold;line-height:1.6;margin-top:20px;margin-bottom:0;">謝謝惠顧！</p>' +
-        "</div></body></html>"
-      );
+      const orderTypeLine = preparedOrder.isReservation
+        ? "預約取餐：" + (pickupTimeRaw || "現場候位")
+        : "單別：現場單";
+      const tableText = preparedOrder.tableNumber || DEFAULT_TABLE_NUMBER;
+      const checkoutTimeText = formatDateTime(preparedOrder.checkoutTime);
+      const orderNoText = formatOrderNumber(preparedOrder.orderNo);
+      const totalText = formatMoney(preparedOrder.snapshot.reduce((sum, item) => sum + Number(item.price || 0), 0));
+      const lines = [
+        "管飽 (Kuanbao)",
+        "桌號：" + tableText,
+        "時間：" + checkoutTimeText,
+        "訂單編號：" + orderNoText,
+        orderTypeLine,
+        "--------------------------------",
+        "品項                數量   單價"
+      ];
+      summary.forEach((line) => {
+        lines.push(line.name + " x" + line.qty + "  " + formatMoney(line.unitPrice));
+      });
+      lines.push("--------------------------------");
+      lines.push("總計：" + totalText);
+      lines.push("謝謝惠顧！");
+      return lines.join("\n");
     }
 
-    function openPassPrntDeepLink(receiptHtml) {
-      const encodedHtml = encodeURIComponent(receiptHtml);
+    function openPassPrntDeepLink(receiptText) {
+      const encodedReceipt = encodeURIComponent(receiptText);
       const backUrl = encodeURIComponent(window.location.href);
-      const passPrntUrl = "starpassprnt://v1/print/process?back=" + backUrl + "&html=" + encodedHtml;
+      const passPrntUrl =
+        "starpassprnt://v1/print/process?receipt=" + encodedReceipt + "&size=3&back=" + backUrl;
       window.location.href = passPrntUrl;
     }
 
@@ -2479,12 +2444,12 @@
 
       try {
         await persistPreparedOrder(preparedOrder);
-        const receiptHtml = buildReceiptPrintHtml(preparedOrder);
+        const receiptText = buildPassPrntReceiptText(preparedOrder);
         clearCart();
         resetOrderMetaFields();
         closeModal();
         clearPrintBlockingState();
-        openPassPrntDeepLink(receiptHtml);
+        openPassPrntDeepLink(receiptText);
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
