@@ -2321,6 +2321,15 @@
       forceResetCheckoutState();
     }
 
+    function clearPrintBlockingState() {
+      document.body.classList.remove("modal-open");
+      document.documentElement.classList.remove("modal-open");
+      document.body.style.pointerEvents = "";
+      document.documentElement.style.pointerEvents = "";
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
     async function handleCheckoutAndPrint() {
       const preparedOrder = prepareOrderForCheckout();
       if (!preparedOrder) {
@@ -2330,10 +2339,14 @@
 
       try {
         await persistPreparedOrder(preparedOrder);
-        window.print();
         clearCart();
         resetOrderMetaFields();
         closeModal();
+        clearPrintBlockingState();
+        setTimeout(() => {
+          clearPrintBlockingState();
+          window.print();
+        }, 800);
         alert("結帳成功，已開啟列印預覽。");
       } catch (error) {
         console.error(error);
