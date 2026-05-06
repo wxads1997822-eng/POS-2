@@ -1476,7 +1476,7 @@
           <button id="checkoutPrintBtn" class="btn btn-print">結帳並列印</button>
         </div>
         <div id="printReadyPanel" class="print-ready-panel" aria-live="polite">
-          <a id="printReceiptLink" class="print-ready-link" href="#" target="_self">列印收據 (Kuanbao)</a>
+          <a id="printReceiptLink" class="print-ready-link" href="#" target="_self">確認列印收據</a>
         </div>
       </section>
     </div>
@@ -2539,7 +2539,7 @@
         closeModal();
         clearPrintBlockingState();
         showPrintReceiptLink(passprntUrl);
-        alert("結帳成功！請點擊下方「列印收據 (Print Receipt)」。");
+        alert("結帳成功！請點擊下方「確認列印收據」。");
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
