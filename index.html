@@ -2397,39 +2397,80 @@
         .replace(/'/g, "&#39;");
     }
 
-    function buildPassPrntReceiptText(preparedOrder) {
+    function buildPassPrntReceiptHtml(preparedOrder) {
       const summary = buildReceiptSummary(preparedOrder.snapshot);
       const pickupTimeRaw = preparedOrder.pickupTime ? String(preparedOrder.pickupTime).trim() : "";
-      const orderTypeLine = preparedOrder.isReservation
-        ? "預約取餐：" + (pickupTimeRaw || "現場候位")
-        : "單別：現場單";
-      const tableText = preparedOrder.tableNumber || DEFAULT_TABLE_NUMBER;
-      const checkoutTimeText = formatDateTime(preparedOrder.checkoutTime);
-      const orderNoText = formatOrderNumber(preparedOrder.orderNo);
-      const totalText = formatMoney(preparedOrder.snapshot.reduce((sum, item) => sum + Number(item.price || 0), 0));
-      const lines = [
-        "管飽 (Kuanbao)",
-        "桌號：" + tableText,
-        "時間：" + checkoutTimeText,
-        "訂單編號：" + orderNoText,
-        orderTypeLine,
-        "--------------------------------",
-        "品項                數量   單價"
-      ];
-      summary.forEach((line) => {
-        lines.push(line.name + " x" + line.qty + "  " + formatMoney(line.unitPrice));
-      });
-      lines.push("--------------------------------");
-      lines.push("總計：" + totalText);
-      lines.push("謝謝惠顧！");
-      return lines.join("\n");
+      const orderTypeLineHtml = preparedOrder.isReservation
+        ? '<p class="meta">預約取餐：' + escapeHtml(pickupTimeRaw || "現場候位") + "</p>"
+        : '<p class="meta">單別：現場單</p>';
+      const rowsHtml = summary
+        .map(
+          (line) =>
+            "<tr>" +
+            '<td class="col-item">' +
+            escapeHtml(line.name) +
+            "</td>" +
+            '<td class="col-qty">' +
+            line.qty +
+            "</td>" +
+            '<td class="col-price">' +
+            escapeHtml(formatMoney(line.unitPrice)) +
+            "</td>" +
+            "</tr>"
+        )
+        .join("");
+      const tableText = escapeHtml(preparedOrder.tableNumber || DEFAULT_TABLE_NUMBER);
+      const checkoutTimeText = escapeHtml(formatDateTime(preparedOrder.checkoutTime));
+      const orderNoText = escapeHtml(formatOrderNumber(preparedOrder.orderNo));
+      const totalText = escapeHtml(
+        formatMoney(preparedOrder.snapshot.reduce((sum, item) => sum + Number(item.price || 0), 0))
+      );
+
+      return (
+        "<html><head><meta charset=\"UTF-8\"><style>" +
+        "@page{size:80mm auto;margin:0;}" +
+        "html,body{height:auto!important;min-height:0!important;margin:0;padding:0;overflow:visible!important;}" +
+        "body{width:80mm;font-family:sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;}" +
+        ".receipt{width:100%;margin:0;padding:0;font-size:40px;font-weight:bold;line-height:1.6;color:#000;}" +
+        ".brand{text-align:center;font-size:52px;font-weight:bold;margin:0 0 15px;}" +
+        ".meta{margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;}" +
+        ".divider{border-bottom:2px dashed #000;margin:10px 0;}" +
+        ".table{width:100%;border-collapse:collapse;margin-top:15px;margin-bottom:15px;font-size:40px;font-weight:bold;table-layout:fixed;}" +
+        ".col-item{padding:8px 0;text-align:left;width:60%;white-space:normal;word-break:break-word;overflow-wrap:anywhere;}" +
+        ".col-qty{padding:8px 0;text-align:center;width:15%;}" +
+        ".col-price{padding:8px 0;text-align:right;width:25%;white-space:nowrap;}" +
+        ".total{font-size:48px;font-weight:bold;text-align:right;line-height:1.6;}" +
+        ".thanks{text-align:center;font-size:40px;font-weight:bold;line-height:1.6;margin-top:20px;margin-bottom:0;}" +
+        "</style></head><body>" +
+        '<div class="receipt">' +
+        '<h1 class="brand">管飽 (Kuanbao)</h1>' +
+        '<p class="meta">桌號：' +
+        tableText +
+        "</p>" +
+        '<p class="meta">時間：' +
+        checkoutTimeText +
+        "</p>" +
+        '<p class="meta">訂單編號：' +
+        orderNoText +
+        "</p>" +
+        orderTypeLineHtml +
+        '<div class="divider"></div>' +
+        '<table class="table"><thead><tr><th class="col-item">品項</th><th class="col-qty">數量</th><th class="col-price">單價</th></tr></thead><tbody>' +
+        rowsHtml +
+        "</tbody></table>" +
+        '<div class="divider"></div>' +
+        '<div class="total">總計：' +
+        totalText +
+        "</div>" +
+        '<p class="thanks">謝謝惠顧！</p>' +
+        "</div></body></html>"
+      );
     }
 
-    function openPassPrntDeepLink(receiptText) {
-      const encodedReceipt = encodeURIComponent(receiptText);
+    function openPassPrntDeepLink(htmlContent) {
+      const encodedHtml = encodeURIComponent(htmlContent);
       const backUrl = encodeURIComponent(window.location.href);
-      const passPrntUrl =
-        "starpassprnt://v1/print/process?receipt=" + encodedReceipt + "&size=3&back=" + backUrl;
+      const passPrntUrl = "starpassprnt://v1/print/nopreview?size=3&back=" + backUrl + "&html=" + encodedHtml;
       window.location.href = passPrntUrl;
     }
 
@@ -2444,12 +2485,12 @@
 
       try {
         await persistPreparedOrder(preparedOrder);
-        const receiptText = buildPassPrntReceiptText(preparedOrder);
+        const receiptHtml = buildPassPrntReceiptHtml(preparedOrder);
         clearCart();
         resetOrderMetaFields();
         closeModal();
         clearPrintBlockingState();
-        openPassPrntDeepLink(receiptText);
+        openPassPrntDeepLink(receiptHtml);
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
