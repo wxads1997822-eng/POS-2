@@ -2470,8 +2470,8 @@
     function openPassPrntDeepLink(htmlContent) {
       const encodedHtml = encodeURIComponent(htmlContent);
       const backUrl = encodeURIComponent(window.location.href);
-      const passPrntUrl = "starpassprnt://v1/print/nopreview?size=3&back=" + backUrl + "&html=" + encodedHtml;
-      window.location.href = passPrntUrl;
+      const passprnt_url = "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
+      window.location.href = passprnt_url;
     }
 
     async function handleCheckoutAndPrint() {
