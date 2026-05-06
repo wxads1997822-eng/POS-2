@@ -2330,11 +2330,33 @@
       document.documentElement.style.overflow = "";
     }
 
+    function forceCloseUiBeforePrint() {
+      [reportModal, monthlyReportModal, monthlyRankingModal, historyModal, inventoryModal].forEach((modal) => {
+        if (!modal) return;
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+      });
+      clearPrintBlockingState();
+      document.querySelectorAll(".modal-backdrop, .backdrop, [data-backdrop]").forEach((backdropEl) => {
+        backdropEl.remove();
+      });
+    }
+
     async function handleCheckoutAndPrint() {
       const preparedOrder = prepareOrderForCheckout();
       if (!preparedOrder) {
         alert("目前沒有任何品項。");
         return;
+      }
+
+      // iOS Safari 需要在使用者點擊觸發鏈上同步呼叫 print，避免被防護機制攔截
+      forceCloseUiBeforePrint();
+      let printTriggered = false;
+      try {
+        window.print();
+        printTriggered = true;
+      } catch (printError) {
+        console.error("列印視窗開啟失敗：", printError);
       }
 
       try {
@@ -2343,11 +2365,11 @@
         resetOrderMetaFields();
         closeModal();
         clearPrintBlockingState();
-        setTimeout(() => {
-          clearPrintBlockingState();
-          window.print();
-        }, 800);
-        alert("結帳成功，已開啟列印預覽。");
+        if (printTriggered) {
+          alert("結帳成功，已開啟列印預覽。");
+        } else {
+          alert("結帳成功（列印視窗可能被瀏覽器阻擋，請手動再印一次）。");
+        }
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
