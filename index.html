@@ -2567,8 +2567,19 @@
 
     function buildPassPrntDeepLink(htmlContent) {
       const encodedHtml = encodeURIComponent(htmlContent);
-      const backUrl = encodeURIComponent(window.location.href);
-      return "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
+      const stableBackTarget = window.location.origin + window.location.pathname;
+      const backUrl = encodeURIComponent(stableBackTarget);
+      const passPrntPathWithQuery = "v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
+      const userAgent = (navigator && navigator.userAgent ? navigator.userAgent : "").toLowerCase();
+      const isAndroid = userAgent.includes("android");
+      if (isAndroid) {
+        return (
+          "intent://" +
+          passPrntPathWithQuery +
+          "#Intent;scheme=starpassprnt;package=com.starmicronics.passprnt;end"
+        );
+      }
+      return "starpassprnt://" + passPrntPathWithQuery;
     }
 
     async function handleCheckoutAndPrint(event) {
