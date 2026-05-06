@@ -2514,8 +2514,7 @@
 
     function buildPassPrntDeepLink(htmlContent) {
       const encodedHtml = encodeURIComponent(htmlContent);
-      const backUrl = encodeURIComponent(window.location.href);
-      return "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
+      return "starpassprnt://v1/print/nopreview?html=" + encodedHtml;
     }
 
     async function handleCheckoutAndPrint(event) {
@@ -3058,7 +3057,7 @@
             alert("尚未產生列印內容，請先完成結帳。");
             return false;
           }
-          window.location.href = href;
+          window.location.replace(href);
           return false;
         });
       }
