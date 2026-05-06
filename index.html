@@ -524,6 +524,30 @@
       padding-top: 10px;
     }
 
+    .print-ready-panel {
+      margin-top: 10px;
+      display: none;
+    }
+
+    .print-ready-panel.show {
+      display: block;
+    }
+
+    .print-ready-link {
+      display: block;
+      width: 100%;
+      min-height: 62px;
+      line-height: 62px;
+      border-radius: 12px;
+      text-align: center;
+      text-decoration: none;
+      font-size: 24px;
+      font-weight: 900;
+      color: #fff;
+      background: #111827;
+      border: 2px solid #0f172a;
+    }
+
     .actions .btn {
       flex: 1;
     }
@@ -1451,6 +1475,9 @@
           <button id="checkoutBtn" class="btn btn-checkout">僅結帳</button>
           <button id="checkoutPrintBtn" class="btn btn-print">結帳並列印</button>
         </div>
+        <div id="printReadyPanel" class="print-ready-panel" aria-live="polite">
+          <a id="printReceiptLink" class="print-ready-link" href="#" target="_self">列印收據 (Print Receipt)</a>
+        </div>
       </section>
     </div>
 
@@ -1632,6 +1659,8 @@
     const clearOrderBtn = document.getElementById("clearOrderBtn");
     const checkoutBtn = document.getElementById("checkoutBtn");
     const checkoutPrintBtn = document.getElementById("checkoutPrintBtn");
+    const printReadyPanel = document.getElementById("printReadyPanel");
+    const printReceiptLink = document.getElementById("printReceiptLink");
     const tableNumberInput = document.getElementById("tableNumberInput");
     const enablePickupTimeCheckbox = document.getElementById("enablePickupTimeCheckbox");
     const pickupTimeField = document.getElementById("pickupTimeField");
@@ -1678,6 +1707,7 @@
     const receiptPickupTime = document.getElementById("receiptPickupTime");
 
     let cart = [];
+    let pendingPassPrntUrl = "";
     let historyTab = "active";
     let inventoryData = [];
     let expandedHistoryOrderId = null;
@@ -2108,6 +2138,18 @@
       syncPickupTimeVisibility();
     }
 
+    function hidePrintReceiptLink() {
+      pendingPassPrntUrl = "";
+      if (printReceiptLink) printReceiptLink.setAttribute("href", "#");
+      if (printReadyPanel) printReadyPanel.classList.remove("show");
+    }
+
+    function showPrintReceiptLink(passprntUrl) {
+      pendingPassPrntUrl = passprntUrl;
+      if (printReceiptLink) printReceiptLink.setAttribute("href", passprntUrl);
+      if (printReadyPanel) printReadyPanel.classList.add("show");
+    }
+
     function resolveCheckoutMeta() {
       const rawTable = tableNumberInput ? tableNumberInput.value.trim() : "";
       if (REQUIRE_TABLE_NUMBER && !rawTable) {
@@ -2153,11 +2195,13 @@
 
     function addToCart(item) {
       cart.push({ id: item.id, name: item.name, price: item.price });
+      hidePrintReceiptLink();
       renderCart();
     }
 
     function removeCartItem(index) {
       cart.splice(index, 1);
+      hidePrintReceiptLink();
       renderCart();
     }
 
@@ -2192,6 +2236,7 @@
     function clearOrder() {
       if (cart.length === 0) return;
       cart = [];
+      hidePrintReceiptLink();
       renderCart();
     }
 
@@ -2467,11 +2512,10 @@
       );
     }
 
-    function openPassPrntDeepLink(htmlContent) {
+    function buildPassPrntDeepLink(htmlContent) {
       const encodedHtml = encodeURIComponent(htmlContent);
       const backUrl = encodeURIComponent(window.location.href);
-      const passprnt_url = "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
-      location.replace(passprnt_url);
+      return "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
     }
 
     async function handleCheckoutAndPrint(event) {
@@ -2489,11 +2533,13 @@
       try {
         await persistPreparedOrder(preparedOrder);
         const receiptHtml = buildPassPrntReceiptHtml(preparedOrder);
+        const passprntUrl = buildPassPrntDeepLink(receiptHtml);
         clearCart();
         resetOrderMetaFields();
         closeModal();
         clearPrintBlockingState();
-        openPassPrntDeepLink(receiptHtml);
+        showPrintReceiptLink(passprntUrl);
+        alert("結帳成功！請點擊下方「列印收據 (Print Receipt)」。");
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
@@ -2516,6 +2562,7 @@
         return;
       }
       clearCart();
+      hidePrintReceiptLink();
       resetOrderMetaFields();
       closeModal();
       alert("結帳成功");
@@ -3003,6 +3050,18 @@
       });
 
       clearOrderBtn.addEventListener("click", clearOrder);
+      if (printReceiptLink) {
+        printReceiptLink.addEventListener("click", (event) => {
+          if (event && typeof event.preventDefault === "function") event.preventDefault();
+          const href = pendingPassPrntUrl || (printReceiptLink.getAttribute("href") || "");
+          if (!href || href === "#") {
+            alert("尚未產生列印內容，請先完成結帳。");
+            return false;
+          }
+          window.location.href = href;
+          return false;
+        });
+      }
 
       const logoutBtn = document.getElementById("logoutBtn");
       if (logoutBtn) {
