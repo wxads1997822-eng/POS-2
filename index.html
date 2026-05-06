@@ -2430,7 +2430,7 @@
         "<html><head><meta charset=\"UTF-8\"><style>" +
         "@page{size:80mm auto;margin:0;}" +
         "html,body{height:auto!important;min-height:0!important;margin:0;padding:0;overflow:visible!important;}" +
-        "body{width:576px;margin:0;padding:0;font-family:sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;}" +
+        "body{width:576px !important;margin:0;padding:0;font-family:sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;}" +
         ".receipt{width:576px;margin:0;padding:0;font-size:40px;font-weight:bold;line-height:1.6;color:#000;}" +
         ".brand{text-align:center;font-size:52px;font-weight:bold;margin:0 0 15px;white-space:nowrap;}" +
         ".meta{margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;}" +
@@ -2471,14 +2471,17 @@
       const encodedHtml = encodeURIComponent(htmlContent);
       const backUrl = encodeURIComponent(window.location.href);
       const passprnt_url = "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
-      window.location.href = passprnt_url;
+      location.replace(passprnt_url);
     }
 
-    async function handleCheckoutAndPrint() {
+    async function handleCheckoutAndPrint(event) {
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
       const preparedOrder = prepareOrderForCheckout();
       if (!preparedOrder) {
         alert("目前沒有任何品項。");
-        return;
+        return false;
       }
 
       forceCloseUiBeforePrint();
@@ -2494,7 +2497,9 @@
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
+        return false;
       }
+      return false;
     }
 
     async function checkoutOnly() {
