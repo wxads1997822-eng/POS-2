@@ -1,7 +1,7 @@
 {
-  "name": "管飽 POS",
-  "short_name": "管飽POS",
-  "start_url": "./index.html",
+  "name": "管飽 (Guanbao)",
+  "short_name": "管飽",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a"
