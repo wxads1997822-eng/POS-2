@@ -480,6 +480,27 @@
       gap: 8px;
     }
 
+    .pickup-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: flex-start;
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      padding: 4px 2px;
+    }
+
+    .pickup-toggle input {
+      width: 24px;
+      height: 24px;
+      accent-color: #16a34a;
+    }
+
+    .pickup-time-field.is-hidden {
+      display: none;
+    }
+
     .pickup-time-separator {
       font-size: 28px;
       font-weight: 900;
@@ -1406,6 +1427,12 @@
             />
           </div>
           <div class="order-meta-field">
+            <label class="pickup-toggle" for="enablePickupTimeCheckbox">
+              <input type="checkbox" id="enablePickupTimeCheckbox" />
+              <span>啟用預約取餐</span>
+            </label>
+          </div>
+          <div id="pickupTimeField" class="order-meta-field pickup-time-field is-hidden">
             <label for="pickupHourSelect">預約取餐時間</label>
             <div class="pickup-time-row">
               <select id="pickupHourSelect" class="order-meta-input" aria-label="取餐小時"></select>
@@ -1606,6 +1633,8 @@
     const checkoutBtn = document.getElementById("checkoutBtn");
     const checkoutPrintBtn = document.getElementById("checkoutPrintBtn");
     const tableNumberInput = document.getElementById("tableNumberInput");
+    const enablePickupTimeCheckbox = document.getElementById("enablePickupTimeCheckbox");
+    const pickupTimeField = document.getElementById("pickupTimeField");
     const pickupHourSelect = document.getElementById("pickupHourSelect");
     const pickupMinuteSelect = document.getElementById("pickupMinuteSelect");
     const openReportBtn = document.getElementById("openReportBtn");
@@ -1924,6 +1953,7 @@
       const month = getMonthKey(checkoutTime);
       const orderTotal = orderItems.reduce((sum, item) => sum + item.price, 0);
       const itemCounts = buildItemCounts(orderItems);
+      const safePickupTime = typeof pickupTime === "string" && pickupTime.trim() ? pickupTime.trim() : "現場";
       await addDoc(collection(db, ORDERS_COLLECTION), {
         date,
         month,
@@ -1932,7 +1962,7 @@
         timestamp: Timestamp.fromDate(checkoutTime),
         orderNo,
         table_number: tableNumber,
-        pickup_time: pickupTime,
+        pickup_time: safePickupTime,
         status: "active",
         lineItems: orderItems.map((item) => ({ id: item.id, name: item.name, price: item.price })),
         is_daily_cleared: false
@@ -2060,11 +2090,22 @@
       return hour && minute ? hour + ":" + minute : getCurrentTimeValue();
     }
 
+    function isPickupReservationEnabled() {
+      return !!(enablePickupTimeCheckbox && enablePickupTimeCheckbox.checked);
+    }
+
+    function syncPickupTimeVisibility() {
+      if (!pickupTimeField) return;
+      pickupTimeField.classList.toggle("is-hidden", !isPickupReservationEnabled());
+    }
+
     function resetOrderMetaFields() {
       if (tableNumberInput) tableNumberInput.value = "";
+      if (enablePickupTimeCheckbox) enablePickupTimeCheckbox.checked = false;
       const [hour, minute] = getCurrentTimeValue().split(":");
       if (pickupHourSelect) pickupHourSelect.value = hour;
       if (pickupMinuteSelect) pickupMinuteSelect.value = minute;
+      syncPickupTimeVisibility();
     }
 
     function resolveCheckoutMeta() {
@@ -2074,15 +2115,19 @@
         return null;
       }
       const tableNumber = rawTable || DEFAULT_TABLE_NUMBER;
-      const pickupTime = getSelectedPickupTime();
-      const pickupMinutes = timeStringToMinutes(pickupTime);
-      const now = new Date();
-      const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      if (!Number.isFinite(pickupMinutes) || pickupMinutes < nowMinutes) {
-        alert("⚠️ 取餐時間不能早於現在時間喔！請重新確認。");
-        return null;
+      const isReservation = isPickupReservationEnabled();
+      let pickupTime = "現場";
+      if (isReservation) {
+        pickupTime = getSelectedPickupTime();
+        const pickupMinutes = timeStringToMinutes(pickupTime);
+        const now = new Date();
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        if (!Number.isFinite(pickupMinutes) || pickupMinutes < nowMinutes) {
+          alert("⚠️ 取餐時間不能早於現在時間喔！請重新確認。");
+          return null;
+        }
       }
-      return { tableNumber, pickupTime };
+      return { tableNumber, pickupTime, isReservation };
     }
 
     function renderMenu() {
@@ -2224,7 +2269,8 @@
         checkoutTime,
         orderNo,
         tableNumber: checkoutMeta.tableNumber,
-        pickupTime: checkoutMeta.pickupTime
+        pickupTime: checkoutMeta.pickupTime,
+        isReservation: checkoutMeta.isReservation
       };
     }
 
@@ -2351,14 +2397,14 @@
         .replace(/'/g, "&#39;");
     }
 
-    function buildPassPrntReceiptHtml(preparedOrder) {
+    function buildReceiptPrintHtml(preparedOrder) {
       const summary = buildReceiptSummary(preparedOrder.snapshot);
-      const pickupHourValue = pickupHourSelect && typeof pickupHourSelect.value === "string" ? pickupHourSelect.value.trim() : "";
-      const pickupMinuteValue =
-        pickupMinuteSelect && typeof pickupMinuteSelect.value === "string" ? pickupMinuteSelect.value.trim() : "";
-      const pickupTimeFromDom = pickupHourValue && pickupMinuteValue ? pickupHourValue + ":" + pickupMinuteValue : "";
-      const pickupTimeRaw = pickupTimeFromDom || (preparedOrder.pickupTime ? String(preparedOrder.pickupTime).trim() : "");
-      const pickupTimeText = escapeHtml(pickupTimeRaw ? pickupTimeRaw : "現場候位");
+      const pickupTimeRaw = preparedOrder.pickupTime ? String(preparedOrder.pickupTime).trim() : "";
+      const orderTypeLineHtml = preparedOrder.isReservation
+        ? '<p style="margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;">預約取餐：' +
+          escapeHtml(pickupTimeRaw || "現場候位") +
+          "</p>"
+        : '<p style="margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;">單別：現場單</p>';
       const rowsHtml = summary
         .map(
           (line) =>
@@ -2383,7 +2429,7 @@
       );
 
       return (
-        '<html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;width:100%;font-family:sans-serif;font-size:40px;font-weight:bold;color:#000;">' +
+        '<html><head><meta charset="UTF-8"><style>@page{size:80mm auto;margin:0;}html,body{height:auto!important;min-height:0!important;margin:0;padding:0;}@media print{html,body{height:auto!important;min-height:0!important;overflow:visible!important;}body{margin:0!important;padding:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body style="margin:0;padding:0;width:80mm;font-family:sans-serif;font-size:40px;font-weight:bold;color:#000;">' +
         '<div style="width:100%;margin:0;padding:0;font-family:sans-serif;font-size:40px;font-weight:bold;line-height:1.6;color:#000;">' +
         '<h1 style="text-align:center;font-size:52px;font-weight:bold;margin:0 0 15px;">管飽 (Kuanbao)</h1>' +
         '<p style="margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;">桌號：' +
@@ -2395,9 +2441,7 @@
         '<p style="margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;">訂單編號：' +
         orderNoText +
         "</p>" +
-        '<p style="margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;">預約取餐：' +
-        pickupTimeText +
-        "</p>" +
+        orderTypeLineHtml +
         '<div style="border-bottom:2px dashed #000;margin:10px 0;"></div>' +
         '<table style="width:100%;border-collapse:collapse;margin-top:15px;margin-bottom:15px;font-size:40px;font-weight:bold;table-layout:fixed;">' +
         "<thead><tr>" +
@@ -2417,6 +2461,43 @@
       );
     }
 
+    function printReceiptWithIframe(receiptHtml) {
+      const printFrame = document.createElement("iframe");
+      printFrame.setAttribute("aria-hidden", "true");
+      printFrame.style.position = "fixed";
+      printFrame.style.right = "0";
+      printFrame.style.bottom = "0";
+      printFrame.style.width = "0";
+      printFrame.style.height = "0";
+      printFrame.style.border = "0";
+      printFrame.style.visibility = "hidden";
+      document.body.appendChild(printFrame);
+
+      const printDoc = printFrame.contentDocument || (printFrame.contentWindow && printFrame.contentWindow.document);
+      const frameWindow = printFrame.contentWindow;
+      if (!printDoc || !frameWindow) {
+        printFrame.remove();
+        throw new Error("無法建立列印視窗");
+      }
+
+      const cleanup = () => {
+        window.removeEventListener("focus", cleanup);
+        if (printFrame.parentNode) {
+          printFrame.parentNode.removeChild(printFrame);
+        }
+      };
+
+      frameWindow.addEventListener("afterprint", cleanup, { once: true });
+      window.addEventListener("focus", cleanup, { once: true });
+
+      printDoc.open();
+      printDoc.write(receiptHtml);
+      printDoc.close();
+
+      frameWindow.focus();
+      frameWindow.print();
+    }
+
     async function handleCheckoutAndPrint() {
       const preparedOrder = prepareOrderForCheckout();
       if (!preparedOrder) {
@@ -2428,15 +2509,12 @@
 
       try {
         await persistPreparedOrder(preparedOrder);
-        const receiptHtml = buildPassPrntReceiptHtml(preparedOrder);
-        const encodedHtml = encodeURIComponent(receiptHtml);
-        const backUrl = encodeURIComponent(window.location.href);
-        const passPrntUrl = "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
+        const receiptHtml = buildReceiptPrintHtml(preparedOrder);
         clearCart();
         resetOrderMetaFields();
         closeModal();
         clearPrintBlockingState();
-        window.location.href = passPrntUrl;
+        printReceiptWithIframe(receiptHtml);
       } catch (error) {
         console.error(error);
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
@@ -2957,6 +3035,9 @@
 
       checkoutBtn.addEventListener("click", checkoutOnly);
       checkoutPrintBtn.addEventListener("click", handleCheckoutAndPrint);
+      if (enablePickupTimeCheckbox) {
+        enablePickupTimeCheckbox.addEventListener("change", syncPickupTimeVisibility);
+      }
       openInventoryBtn.addEventListener("click", openInventoryModal);
       openMonthlyRankingBtn.addEventListener("click", runAsync(openMonthlyRankingModal));
       openReportBtn.addEventListener("click", runAsync(openReportModal));
