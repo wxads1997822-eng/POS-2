@@ -2567,21 +2567,8 @@
 
     function buildPassPrntDeepLink(htmlContent) {
       const encodedHtml = encodeURIComponent(htmlContent);
-      const stableBackTarget = window.location.origin + window.location.pathname;
-      const backUrl = encodeURIComponent(stableBackTarget);
-      const passPrntPathWithQuery = "v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
-      const userAgent = (navigator && navigator.userAgent ? navigator.userAgent : "").toLowerCase();
-      const isAndroid = userAgent.includes("android");
-      if (isAndroid) {
-        return (
-          "intent://" +
-          passPrntPathWithQuery +
-          "#Intent;scheme=starpassprnt;package=jp.star.passprnt;S.back=" +
-          backUrl +
-          ";end"
-        );
-      }
-      return "starpassprnt://" + passPrntPathWithQuery;
+      const backUrl = encodeURIComponent(window.location.href);
+      return "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
     }
 
     async function handleCheckoutAndPrint(event) {
@@ -2605,7 +2592,7 @@
         resetOrderMetaFields();
         closeModal();
         clearPrintBlockingState();
-        window.location.assign(passprntUrl);
+        window.location.href = passprntUrl;
         alert("結帳成功，已送出列印指令。");
       } catch (error) {
         console.error(error);
@@ -3125,7 +3112,7 @@
             alert("尚未產生列印內容，請先完成結帳。");
             return false;
           }
-          window.location.assign(href);
+          window.location.href = href;
           return false;
         });
       }
