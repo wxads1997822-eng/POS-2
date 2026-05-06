@@ -2576,7 +2576,9 @@
         return (
           "intent://" +
           passPrntPathWithQuery +
-          "#Intent;scheme=starpassprnt;package=com.starmicronics.passprnt;end"
+          "#Intent;scheme=starpassprnt;package=jp.star.passprnt;S.back=" +
+          backUrl +
+          ";end"
         );
       }
       return "starpassprnt://" + passPrntPathWithQuery;
