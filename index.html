@@ -110,6 +110,139 @@
       flex-wrap: wrap;
     }
 
+    .cloud-pending-bar {
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #7f1d1d 0%, #ea580c 100%);
+      color: #fffbeb;
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 2px solid #fdba74;
+      max-height: 38vh;
+      overflow: auto;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .cloud-pending-bar[hidden] {
+      display: none !important;
+    }
+
+    .cloud-pending-title {
+      font-size: 20px;
+      font-weight: 900;
+      margin: 0 0 10px;
+      letter-spacing: 0.04em;
+    }
+
+    .cloud-pending-card {
+      background: rgba(15, 23, 42, 0.35);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 251, 235, 0.35);
+    }
+
+    .cloud-pending-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .cloud-pending-meta {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.45;
+      margin-bottom: 6px;
+    }
+
+    .cloud-pending-items {
+      font-size: 15px;
+      line-height: 1.5;
+      opacity: 0.95;
+      margin-bottom: 10px;
+      word-break: break-word;
+    }
+
+    .cloud-accept-btn {
+      min-height: 46px;
+      padding: 0 16px;
+      font-size: 17px;
+      font-weight: 800;
+      border: none;
+      border-radius: 10px;
+      background: #fef08a;
+      color: #78350f;
+      cursor: pointer;
+    }
+
+    .cloud-accept-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .store-control-strip {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 14px;
+      border: 2px solid #1e3a8a;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    }
+
+    .store-accept-switch {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 20px;
+      font-weight: 900;
+      color: #0f172a;
+    }
+
+    .store-accept-switch input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .store-accept-track {
+      width: 64px;
+      height: 34px;
+      border-radius: 999px;
+      background: #cbd5e1;
+      position: relative;
+      transition: background 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .store-accept-track::after {
+      content: "";
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px;
+      left: 3px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease;
+    }
+
+    .store-accept-switch input:checked + .store-accept-track {
+      background: #22c55e;
+    }
+
+    .store-accept-switch input:checked + .store-accept-track::after {
+      transform: translateX(30px);
+    }
+
+    .store-accept-switch input:focus-visible + .store-accept-track {
+      outline: 3px solid #2563eb;
+      outline-offset: 2px;
+    }
+
     .report-btn {
       border: none;
       background: #111827;
@@ -242,11 +375,11 @@
     }
 
     .checkout-panel h2 {
-      color: #2e8b57;
+      color: #fff;
       font-weight: 800;
       display: block;
       text-align: center;
-      text-shadow: 0 0 6px rgba(57, 255, 20, 0.45);
+      text-shadow: none;
     }
 
     .menu-panel h2 {
@@ -305,7 +438,7 @@
       background-color: rgba(255, 255, 255, 0.55);
       border-radius: 12px;
       padding: 8px 10px;
-      min-height: 80px;
+      min-height: 120px;
       text-align: left;
       cursor: pointer;
       user-select: none;
@@ -327,7 +460,8 @@
 
     .menu-item strong {
       display: block;
-      font-size: 16px;
+      font-size: 24px;
+      font-weight: 800;
       margin-bottom: 4px;
       line-height: 1.25;
       color: #212529;
@@ -336,7 +470,8 @@
     }
 
     .menu-item span {
-      font-size: 15px;
+      font-size: 22px;
+      font-weight: 700;
       color: #212529;
       line-height: 1.2;
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
@@ -494,8 +629,15 @@
       justify-content: flex-start;
       font-size: 22px;
       font-weight: 800;
-      color: #0f172a;
+      color: #fff;
+      text-shadow: none;
       padding: 4px 2px;
+    }
+
+    /* .order-meta-field label 的綠字會蓋過 .pickup-toggle，須單獨覆寫「啟用預約取餐」 */
+    .order-meta-field label.pickup-toggle {
+      color: #fff;
+      text-shadow: none;
     }
 
     .pickup-toggle input {
@@ -1452,7 +1594,7 @@
 <body>
   <div id="loginOverlay" class="login-overlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
     <div class="login-card">
-      <h1 id="loginTitle">管飽 POS 系統</h1>
+      <h1 id="loginTitle">Kuanbao POS 系統</h1>
       <div class="login-field">
         <label for="loginEmail">帳號 (Email)</label>
         <input id="loginEmail" type="email" autocomplete="username" inputmode="email" />
@@ -1475,7 +1617,7 @@
   <div id="posWorkspace" hidden>
   <div class="app">
     <div class="topbar">
-      <div class="brand-title">管飽系統</div>
+      <div class="brand-title">Kuanbao 系統</div>
       <div class="topbar-actions">
         <button id="openReportBtn" class="report-btn">查看今日報表</button>
         <button id="openMonthlyReportBtn" class="report-btn">查看本月報表</button>
@@ -1484,6 +1626,19 @@
         <button id="importDataBtn" class="tool-btn">匯入系統資料</button>
         <input id="importDataInput" type="file" accept=".json,application/json" hidden />
       </div>
+    </div>
+
+    <div class="store-control-strip">
+      <label class="store-accept-switch" for="storeAcceptingOrdersToggle">
+        <input type="checkbox" id="storeAcceptingOrdersToggle" checked />
+        <span class="store-accept-track" aria-hidden="true"></span>
+        <span id="storeAcceptingOrdersLabel">🟢 線上接單中</span>
+      </label>
+    </div>
+
+    <div id="cloudPendingBar" class="cloud-pending-bar" hidden>
+      <p class="cloud-pending-title">雲端新單待確認</p>
+      <div id="cloudPendingList"></div>
     </div>
 
     <div class="layout">
@@ -1619,7 +1774,7 @@
   </div>
 
   <section id="receiptPrint" class="receipt-print" aria-hidden="true">
-    <h1 class="receipt-brand">管飽 (Guanbao)</h1>
+    <h1 class="receipt-brand">Kuanbao</h1>
     <div class="receipt-meta">
       <p id="receiptTableNumber" class="receipt-meta-line">桌號：外帶</p>
       <p id="receiptPickupTime" class="receipt-meta-line">預約取餐時間：即時</p>
@@ -1641,7 +1796,6 @@
       <span>總計：</span>
       <span id="receiptTotal">$0</span>
     </div>
-    <p class="receipt-thanks">謝謝惠顧！</p>
   </section>
 
   </div>
@@ -1658,8 +1812,12 @@
       where,
       updateDoc,
       doc,
+      getDoc,
+      setDoc,
       writeBatch,
-      Timestamp
+      Timestamp,
+      onSnapshot,
+      runTransaction
     } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
     import {
       getAuth,
@@ -1690,9 +1848,13 @@
     window.posAuth = auth;
 
     const ORDERS_COLLECTION = "orders";
+    const CUSTOMER_ORDER_SOURCE = "customer_mobile";
+    const CONFIG_COLLECTION = "config";
+    const STORE_STATUS_DOC_ID = "store_status";
+    const PRODUCTS_COLLECTION = "products";
     const ORDER_COUNTER_KEY = "pos_order_counter_v1";
     const INVENTORY_STORAGE_KEY = "inventoryData";
-    const SHOP_NAME = "管飽";
+    const SHOP_NAME = "Kuanbao";
     const REQUIRE_TABLE_NUMBER = false;
     const DEFAULT_TABLE_NUMBER = "外帶";
 
@@ -1761,6 +1923,10 @@
     const receiptTotal = document.getElementById("receiptTotal");
     const receiptTableNumber = document.getElementById("receiptTableNumber");
     const receiptPickupTime = document.getElementById("receiptPickupTime");
+    const cloudPendingBar = document.getElementById("cloudPendingBar");
+    const cloudPendingList = document.getElementById("cloudPendingList");
+    const storeAcceptingOrdersToggle = document.getElementById("storeAcceptingOrdersToggle");
+    const storeAcceptingOrdersLabel = document.getElementById("storeAcceptingOrdersLabel");
 
     let cart = [];
     let pendingPassPrntUrl = "";
@@ -1981,7 +2147,12 @@
         itemCounts: safeCounts,
         timestamp: typeof order.timestamp === "string" ? order.timestamp : new Date().toISOString(),
         orderNo: Number.isFinite(Number(order.orderNo)) ? Math.floor(Number(order.orderNo)) : 0,
-        status: order.status === "voided" ? "voided" : "active",
+        status:
+          order.status === "voided"
+            ? "voided"
+            : order.status === "pending"
+              ? "pending"
+              : "active",
         lineItems: Array.isArray(order.lineItems) ? order.lineItems : [],
         is_daily_cleared: order.is_daily_cleared === true,
         table_number: typeof order.table_number === "string" && order.table_number.trim()
@@ -1989,7 +2160,10 @@
           : DEFAULT_TABLE_NUMBER,
         pickup_time: typeof order.pickup_time === "string" && order.pickup_time.trim()
           ? order.pickup_time.trim()
-          : ""
+          : "",
+        source: typeof order.source === "string" ? order.source : "",
+        customer_name: typeof order.customer_name === "string" ? order.customer_name.trim() : "",
+        customer_phone: typeof order.customer_phone === "string" ? order.customer_phone.trim() : ""
       };
     }
 
@@ -2034,6 +2208,44 @@
       return list;
     }
 
+    let productsSeedChecked = false;
+    let productsSeedPromise = null;
+
+    async function ensureProductsSeededIfEmpty() {
+      if (productsSeedChecked) return;
+      if (productsSeedPromise) {
+        await productsSeedPromise;
+        return;
+      }
+      productsSeedPromise = (async () => {
+        const snap = await getDocs(collection(db, PRODUCTS_COLLECTION));
+        if (!snap.empty) {
+          productsSeedChecked = true;
+          return;
+        }
+        const batch = writeBatch(db);
+        MENU_ITEMS.forEach((item, index) => {
+          const ref = doc(db, PRODUCTS_COLLECTION, item.id);
+          batch.set(ref, {
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            discount: item.discount === true,
+            sortOrder: index,
+            enabled: true
+          });
+        });
+        await batch.commit();
+        productsSeedChecked = true;
+        console.info("Firestore products 集合為空，已從店內 MENU_ITEMS 自動建立菜單文件。");
+      })();
+      try {
+        await productsSeedPromise;
+      } finally {
+        productsSeedPromise = null;
+      }
+    }
+
     async function persistNewOrderToFirestore(orderItems, checkoutTime, orderNo, tableNumber, pickupTime) {
       const date = getTodayKey(checkoutTime);
       const month = getMonthKey(checkoutTime);
@@ -2058,7 +2270,7 @@
     function createSummaryFromOrders(orders) {
       const summary = createInitialReport();
       orders.forEach((order) => {
-        if (order.status === "voided") return;
+        if (order.status === "voided" || order.status === "pending") return;
         summary.totalRevenue += order.total;
         MENU_ITEMS.forEach((item) => {
           summary.itemCounts[item.id] += order.itemCounts[item.id] || 0;
@@ -2233,6 +2445,7 @@
       MENU_ITEMS.forEach((item) => {
         const button = document.createElement("button");
         button.className = "menu-item" + (item.discount ? " discount" : "");
+        button.dataset.id = item.id;
         if (item.discount) {
           button.innerHTML = "<strong>" + item.name + "</strong>";
         } else {
@@ -2498,80 +2711,437 @@
         .replace(/'/g, "&#39;");
     }
 
-    function buildPassPrntReceiptHtml(preparedOrder) {
-      const summary = buildReceiptSummary(preparedOrder.snapshot);
-      const pickupTimeRaw = preparedOrder.pickupTime ? String(preparedOrder.pickupTime).trim() : "";
-      const orderTypeLineHtml = preparedOrder.isReservation
-        ? '<p class="meta">預約取餐：' + escapeHtml(pickupTimeRaw || "現場候位") + "</p>"
-        : '<p class="meta">單別：現場單</p>';
-      const rowsHtml = summary
-        .map(
-          (line) =>
-            "<tr>" +
-            '<td class="col-item">' +
-            escapeHtml(line.name) +
-            "</td>" +
-            '<td class="col-qty">' +
-            line.qty +
-            "</td>" +
-            '<td class="col-price">' +
-            escapeHtml(formatMoney(line.unitPrice)) +
-            "</td>" +
-            "</tr>"
-        )
-        .join("");
-      const tableText = escapeHtml(preparedOrder.tableNumber || DEFAULT_TABLE_NUMBER);
-      const checkoutTimeText = escapeHtml(formatDateTime(preparedOrder.checkoutTime));
-      const orderNoText = escapeHtml(formatOrderNumber(preparedOrder.orderNo));
-      const totalText = escapeHtml(
-        formatMoney(preparedOrder.snapshot.reduce((sum, item) => sum + Number(item.price || 0), 0))
-      );
+    // ===== RawBT 收據列印（Canvas → ESC/POS raster → rawbt:base64,...）=====
+    // 80mm 熱感應紙標準解析度寬度（必須為 8 的倍數，與 ESC/POS GS v 0 對齊）
+    const RECEIPT_WIDTH_PX = 576;
+    // 第一張（明細）點陣印完後的推紙（ESC J）：須把整張含「總計」推出裁刀區再下第一刀；過短會像文字沒印完就切、總計黏到第二張頂端
+    const FEED_BETWEEN_RECEIPTS_DOTS = 330;
+    // 第二張影像「之前」的推紙點數，把工作單標題從第一刀切口略往下推（與第一張尾端推紙一併微調後可略縮）
+    const FEED_BEFORE_WORK_IMAGE_DOTS = 96;
+    // 第二張僅在畫布內縮頂留白上移內容（不調整 FEED_BEFORE／第一張）；32px ≈ 4mm（203dpi 縱向約 8 dot/mm）
+    const WORK_CANVAS_TOP_SHIFT_UP_PX = 32;
+    const WORK_TOP_INSET_SAVE_PX = 20; // 24 → 4
+    const WORK_BRAND_GAP_AFTER_PX = 70 - (WORK_CANVAS_TOP_SHIFT_UP_PX - WORK_TOP_INSET_SAVE_PX); // 58，與上兩項合計省 32px
+    // 第二張結束後推紙：工作單點陣變矮時補回等量 dots，維持「謝謝惠顧」通過裁刀的裕度
+    const FEED_AFTER_FINAL_DOTS = 220 + WORK_CANVAS_TOP_SHIFT_UP_PX;
+    // 工作單 canvas 最小高度與底部留白（謝謝惠顧下方保留適度白邊，搭配 FEED_AFTER_FINAL）
+    const WORK_CANVAS_MIN_HEIGHT_PX = 250;
+    const WORK_CANVAS_BOTTOM_PAD_PX = 72;
 
-      return (
-        "<html><head><meta charset=\"UTF-8\"><style>" +
-        "@page{size:80mm auto;margin:0;}" +
-        "html,body{height:auto!important;min-height:0!important;margin:0;padding:0;overflow:visible!important;}" +
-        "body{width:576px !important;margin:0;padding:0;font-family:sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;}" +
-        ".receipt{width:576px;margin:0;padding:0;font-size:40px;font-weight:bold;line-height:1.6;color:#000;}" +
-        ".brand{text-align:center;font-size:52px;font-weight:bold;margin:0 0 15px;white-space:nowrap;}" +
-        ".meta{margin:0;font-size:40px;font-weight:bold;line-height:1.6;text-align:left;}" +
-        ".divider{border-bottom:2px dashed #000;margin:10px 0;}" +
-        ".table{width:100%;border-collapse:collapse;margin-top:15px;margin-bottom:15px;font-size:40px;font-weight:bold;table-layout:fixed;}" +
-        ".col-item{padding:8px 0;text-align:left;width:65%;white-space:nowrap;overflow:hidden;}" +
-        ".col-qty{padding:8px 0;text-align:center;width:10%;}" +
-        ".col-price{padding:8px 0;text-align:right;width:25%;white-space:nowrap;}" +
-        ".total{font-size:48px;font-weight:bold;text-align:right;line-height:1.6;}" +
-        ".thanks{text-align:center;font-size:40px;font-weight:bold;line-height:1.6;margin-top:20px;margin-bottom:0;}" +
-        "</style></head><body>" +
-        '<div class="receipt">' +
-        '<h1 class="brand">管飽 (Kuanbao)</h1>' +
-        '<p class="meta">桌號：' +
-        tableText +
-        "</p>" +
-        '<p class="meta">時間：' +
-        checkoutTimeText +
-        "</p>" +
-        '<p class="meta">訂單編號：' +
-        orderNoText +
-        "</p>" +
-        orderTypeLineHtml +
-        '<div class="divider"></div>' +
-        '<table class="table"><thead><tr><th class="col-item">品項</th><th class="col-qty">數量</th><th class="col-price">單價</th></tr></thead><tbody>' +
-        rowsHtml +
-        "</tbody></table>" +
-        '<div class="divider"></div>' +
-        '<div class="total">總計：' +
-        totalText +
-        "</div>" +
-        '<p class="thanks">謝謝惠顧！</p>' +
-        "</div></body></html>"
-      );
+    function drawDashedDivider(ctx, x1, y, x2) {
+      ctx.save();
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 6]);
+      ctx.beginPath();
+      ctx.moveTo(x1, y + 1);
+      ctx.lineTo(x2, y + 1);
+      ctx.stroke();
+      ctx.restore();
     }
 
-    function buildPassPrntDeepLink(htmlContent) {
-      const encodedHtml = encodeURIComponent(htmlContent);
-      const backUrl = encodeURIComponent(window.location.href);
-      return "starpassprnt://v1/print/nopreview?back=" + backUrl + "&html=" + encodedHtml;
+    function wrapTextToWidth(ctx, text, maxWidth) {
+      if (ctx.measureText(text).width <= maxWidth) return [text];
+      const lines = [];
+      let current = "";
+      for (const ch of text) {
+        const test = current + ch;
+        if (ctx.measureText(test).width > maxWidth && current.length > 0) {
+          lines.push(current);
+          current = ch;
+        } else {
+          current = test;
+        }
+      }
+      if (current) lines.push(current);
+      return lines;
+    }
+
+    /** 列印用：僅顯示首字，其餘以全形「Ｏ」代替（不修改資料庫） */
+    function maskCustomerNameForPrint(name) {
+      const s = typeof name === "string" ? name.trim() : "";
+      if (!s) return "";
+      const chars = Array.from(s);
+      const first = chars[0] || "";
+      if (chars.length <= 1) return first;
+      return first + "Ｏ".repeat(chars.length - 1);
+    }
+
+    /** 列印標頭顧客列專用：僅顯示末三碼，其餘以 * 代替（不修改資料庫） */
+    function maskCustomerPhoneLastThreeForPrint(phone) {
+      const digits = String(phone || "").replace(/\D/g, "");
+      if (!digits) return "";
+      if (digits.length <= 3) return "***" + digits;
+      return "***" + digits.slice(-3);
+    }
+
+    /** 列印用：台灣手機 10 碼為前 4 + ** + 後 3；其餘號碼則遮罩中段（不修改資料庫） */
+    function maskCustomerPhoneForPrint(phone) {
+      const digits = String(phone || "").replace(/\D/g, "");
+      if (!digits) return "";
+      if (digits.length === 10) {
+        return digits.slice(0, 4) + "**" + digits.slice(-3);
+      }
+      if (digits.length < 7) {
+        return digits.slice(0, 2) + "**";
+      }
+      const head = Math.min(4, Math.floor(digits.length / 3));
+      const tail = Math.min(3, Math.floor(digits.length / 3));
+      const midLen = Math.max(digits.length - head - tail, 2);
+      return digits.slice(0, head) + "**" + digits.slice(digits.length - tail);
+    }
+
+    /** 列印標頭「(取餐：HH:MM)」用；非 HH:MM 則原樣輸出（不含「現場」）。 */
+    function formatPickupTimeForPrintHeader(pickupTimeRaw) {
+      const s = String(pickupTimeRaw || "").trim();
+      if (!s || s === "現場") return "";
+      const m = /^(\d{1,2}):(\d{2})$/.exec(s);
+      if (!m) return s;
+      const h = Math.max(0, Math.min(23, parseInt(m[1], 10)));
+      const mi = Math.max(0, Math.min(59, parseInt(m[2], 10)));
+      return String(h).padStart(2, "0") + ":" + String(mi).padStart(2, "0");
+    }
+
+    /**
+     * 列印用顧客列（隱碼後）；無姓名且無電話則回傳空字串（不印、不留空行）。
+     * 格式：顧客：[姓]ＯＯ / ***末三碼 (取餐：HH:MM)
+     */
+    function buildMaskedCustomerPrintLine(preparedOrder) {
+      if (!preparedOrder || typeof preparedOrder !== "object") return "";
+      const rawName = typeof preparedOrder.customer_name === "string" ? preparedOrder.customer_name.trim() : "";
+      const rawPhone = typeof preparedOrder.customer_phone === "string" ? preparedOrder.customer_phone.trim() : "";
+      const maskedName = maskCustomerNameForPrint(rawName);
+      const maskedPhone = maskCustomerPhoneLastThreeForPrint(rawPhone);
+      if (!maskedName && !maskedPhone) return "";
+      let line =
+        maskedName && maskedPhone
+          ? "顧客：" + maskedName + " / " + maskedPhone
+          : maskedName
+            ? "顧客：" + maskedName
+            : "顧客：" + maskedPhone;
+      const pickupFmt = formatPickupTimeForPrintHeader(
+        preparedOrder.pickupTime ? String(preparedOrder.pickupTime) : ""
+      );
+      if (pickupFmt) {
+        line += " (取餐：" + pickupFmt + ")";
+      }
+      return line;
+    }
+
+    /**
+     * 繪製收據內容（店名、meta、明細品項＋總計 或 工作單＋致謝），回傳最後 y（總計／致謝後已含 y+=）。
+     * 明細單請先畫在高度足夠的 canvas 上量測 y，再依 y 設定正式 tmp 高度重畫，避免「總計」被裁切後印到第二張頂端。
+     */
+    function paintReceiptBody(
+      ctx,
+      preparedOrder,
+      kind,
+      summary,
+      W,
+      PAD_X,
+      FONT_BRAND,
+      FONT_META,
+      FONT_TABLE,
+      FONT_TOTAL,
+      FONT_THANKS
+    ) {
+      const isDetail = kind !== "work";
+      let y = isDetail ? 24 : 24 - WORK_TOP_INSET_SAVE_PX;
+
+      ctx.font = FONT_BRAND;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#000";
+      ctx.fillText("Kuanbao", W / 2, y);
+      y += isDetail ? 70 : WORK_BRAND_GAP_AFTER_PX;
+
+      ctx.font = FONT_META;
+      ctx.textAlign = "left";
+      const metaLineHeight = 52;
+      function drawMetaLine(text) {
+        ctx.fillText(text, PAD_X, y);
+        y += metaLineHeight;
+      }
+
+      const tableNumber = preparedOrder.tableNumber || DEFAULT_TABLE_NUMBER;
+      const checkoutTimeText = formatDateTime(preparedOrder.checkoutTime);
+      const orderNoText = formatOrderNumber(preparedOrder.orderNo);
+      const pickupTimeRaw = preparedOrder.pickupTime ? String(preparedOrder.pickupTime).trim() : "";
+      const orderTypeText = preparedOrder.isReservation
+        ? "預約取餐：" + (pickupTimeRaw || "現場候位")
+        : "單別：現場單";
+
+      drawMetaLine("桌號：" + tableNumber);
+      const maskedCustomerPrintLine = buildMaskedCustomerPrintLine(preparedOrder);
+      if (maskedCustomerPrintLine) {
+        drawMetaLine(maskedCustomerPrintLine);
+      }
+      drawMetaLine("時間：" + checkoutTimeText);
+      drawMetaLine("訂單編號：" + orderNoText);
+      drawMetaLine(orderTypeText);
+
+      if (isDetail) {
+        y += 8;
+        drawDashedDivider(ctx, PAD_X, y, W - PAD_X);
+        y += 24;
+
+        ctx.font = FONT_TABLE;
+        const COL_ITEM_LEFT = PAD_X;
+        const COL_QTY_X = Math.round(W * 0.62);
+        const COL_PRICE_RIGHT = W - PAD_X;
+        const ITEM_MAX_WIDTH = COL_QTY_X - COL_ITEM_LEFT - 16;
+
+        ctx.textAlign = "left";
+        ctx.fillText("品項", COL_ITEM_LEFT, y);
+        ctx.textAlign = "center";
+        ctx.fillText("數量", COL_QTY_X, y);
+        ctx.textAlign = "right";
+        ctx.fillText("單價", COL_PRICE_RIGHT, y);
+        y += 50;
+
+        summary.forEach((line) => {
+          const qtyText = "x" + line.qty;
+          const priceText = formatMoney(line.unitPrice);
+          const wrapped = wrapTextToWidth(ctx, line.name, ITEM_MAX_WIDTH);
+          wrapped.forEach((wrappedLine, i) => {
+            ctx.textAlign = "left";
+            ctx.fillText(wrappedLine, COL_ITEM_LEFT, y);
+            if (i === 0) {
+              ctx.textAlign = "center";
+              ctx.fillText(qtyText, COL_QTY_X, y);
+              ctx.textAlign = "right";
+              ctx.fillText(priceText, COL_PRICE_RIGHT, y);
+            }
+            y += 50;
+          });
+        });
+
+        y += 8;
+        drawDashedDivider(ctx, PAD_X, y, W - PAD_X);
+        y += 24;
+
+        ctx.font = FONT_TOTAL;
+        ctx.textAlign = "right";
+        const totalText = formatMoney(
+          preparedOrder.snapshot.reduce((sum, item) => sum + Number(item.price || 0), 0)
+        );
+        ctx.fillText("總計：" + totalText, W - PAD_X, y);
+        y += 52;
+      } else {
+        y += 40;
+        ctx.font = FONT_THANKS;
+        ctx.textAlign = "center";
+        ctx.fillText("謝謝惠顧！", W / 2, y);
+        y += 56;
+      }
+
+      return y;
+    }
+
+    async function renderReceiptToCanvas(preparedOrder, kind) {
+      // 等所有字型載入完成，避免 fallback 字型造成版面跑掉
+      if (document.fonts && document.fonts.ready) {
+        try { await document.fonts.ready; } catch (e) { /* ignore */ }
+      }
+
+      const isDetail = kind !== "work";
+      const summary = isDetail ? buildReceiptSummary(preparedOrder.snapshot) : [];
+
+      const W = RECEIPT_WIDTH_PX;
+      const PAD_X = 16;
+
+      const FONT_FAMILY = "'Noto Sans TC','Microsoft JhengHei','PingFang TC','Heiti TC',sans-serif";
+      const FONT_BRAND = "900 56px " + FONT_FAMILY;
+      const FONT_META = "700 40px " + FONT_FAMILY;
+      const FONT_TABLE = "700 38px " + FONT_FAMILY;
+      const FONT_TOTAL = "900 50px " + FONT_FAMILY;
+      const FONT_THANKS = "700 40px " + FONT_FAMILY;
+
+      const fontArgs = [FONT_BRAND, FONT_META, FONT_TABLE, FONT_TOTAL, FONT_THANKS];
+
+      // 明細：先在高畫布實際繪製取得真實 y（與 measureText 換行一致），再依 y 設 tmp 重畫，杜絕「總計」被裁切
+      const DETAIL_MEASURE_CANVAS_H = 20000;
+
+      const tmp = document.createElement("canvas");
+      tmp.width = W;
+
+      let y;
+      if (isDetail) {
+        const scratch = document.createElement("canvas");
+        scratch.width = W;
+        scratch.height = DETAIL_MEASURE_CANVAS_H;
+        const sctx = scratch.getContext("2d");
+        sctx.fillStyle = "#fff";
+        sctx.fillRect(0, 0, W, DETAIL_MEASURE_CANVAS_H);
+        sctx.textBaseline = "top";
+        y = paintReceiptBody(
+          sctx,
+          preparedOrder,
+          "detail",
+          summary,
+          W,
+          PAD_X,
+          ...fontArgs
+        );
+        const bottomPadDetail = 72;
+        const contentH = y + bottomPadDetail;
+        // 勿強制 min 2400：過長空白點陣＋過短推紙時，部分機種尾端易與裁切錯位；改依實際內容高度＋余白
+        tmp.height = Math.min(20000, Math.max(500, contentH + 120));
+      } else {
+        tmp.height = 1400;
+      }
+
+      const ctx = tmp.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, W, tmp.height);
+      ctx.fillStyle = "#000";
+      ctx.textBaseline = "top";
+      y = paintReceiptBody(ctx, preparedOrder, kind, summary, W, PAD_X, ...fontArgs);
+
+      const minHeight = isDetail ? 0 : WORK_CANVAS_MIN_HEIGHT_PX;
+      const bottomPad = isDetail ? 72 : WORK_CANVAS_BOTTOM_PAD_PX;
+      const finalH = Math.max(y + bottomPad, minHeight);
+      if (isDetail && finalH > tmp.height) {
+        tmp.height = Math.min(20000, finalH + 80);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, W, tmp.height);
+        ctx.fillStyle = "#000";
+        y = paintReceiptBody(ctx, preparedOrder, kind, summary, W, PAD_X, ...fontArgs);
+      }
+
+      const finalCanvas = document.createElement("canvas");
+      finalCanvas.width = W;
+      finalCanvas.height = finalH;
+      const finalCtx = finalCanvas.getContext("2d");
+      finalCtx.fillStyle = "#fff";
+      finalCtx.fillRect(0, 0, W, finalH);
+      const copyH = Math.min(tmp.height, finalH);
+      finalCtx.drawImage(tmp, 0, 0, W, copyH, 0, 0, W, copyH);
+      return finalCanvas;
+    }
+
+    // 把 canvas 轉為 1-bit raster bitmap（ESC/POS GS v 0 用的格式）
+    function canvasToRasterBitmap(canvas) {
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width;
+      const H = canvas.height;
+      const imageData = ctx.getImageData(0, 0, W, H);
+      const data = imageData.data;
+      const widthBytes = Math.ceil(W / 8);
+      const bitmap = new Uint8Array(widthBytes * H);
+      for (let yy = 0; yy < H; yy++) {
+        for (let xx = 0; xx < W; xx++) {
+          const idx = (yy * W + xx) * 4;
+          const r = data[idx];
+          const g = data[idx + 1];
+          const b = data[idx + 2];
+          const a = data[idx + 3];
+          const gray = r * 0.299 + g * 0.587 + b * 0.114;
+          if (a > 128 && gray < 128) {
+            bitmap[yy * widthBytes + (xx >> 3)] |= 1 << (7 - (xx & 7));
+          }
+        }
+      }
+      return { widthBytes: widthBytes, height: H, bitmap: bitmap };
+    }
+
+    function appendRasterImage(out, raster) {
+      out.push(0x1D, 0x76, 0x30, 0x00); // GS v 0 m=0 — raster image
+      out.push(raster.widthBytes & 0xFF, (raster.widthBytes >> 8) & 0xFF);
+      out.push(raster.height & 0xFF, (raster.height >> 8) & 0xFF);
+      for (let i = 0; i < raster.bitmap.length; i++) out.push(raster.bitmap[i]);
+    }
+
+    function appendFeedDots(out, dots) {
+      let remaining = Math.max(0, Number(dots) || 0);
+      while (remaining > 0) {
+        const chunk = Math.min(255, remaining);
+        out.push(0x1B, 0x4A, chunk); // ESC J n — feed n dots
+        remaining -= chunk;
+      }
+    }
+
+    function appendFullCut(out) {
+      out.push(0x1D, 0x56, 0x00); // GS V 0 — 全切（Function A）
+    }
+
+    // 「單一包裹」策略：把兩張 canvas 的 raster + 兩個切刀指令合併成單一 ESC/POS bytes
+    // 順序：ESC@ → 明細圖 → ESC J 推紙 → 切刀 → ESC J 推紙 → 工作單圖 → ESC J 推紙 → 切刀
+    // 一次 rawbt:base64,... URL 送出，徹底繞過 PWA 雙觸發限制
+    function buildCombinedReceiptBytes(detailCanvas, workCanvas) {
+      const detailRaster = canvasToRasterBitmap(detailCanvas);
+      const workRaster = canvasToRasterBitmap(workCanvas);
+
+      const out = [];
+      out.push(0x1B, 0x40); // ESC @ — 初始化
+
+      // —— 第一張：明細單 ——
+      appendRasterImage(out, detailRaster);
+      // 長單點陣較高時略增推紙，避免裁刀切在尾端墨迹尚未完全離開感應區
+      const detailTailFeed = Math.min(280, Math.max(0, Math.floor((detailCanvas.height || 0) / 14)));
+      appendFeedDots(out, FEED_BETWEEN_RECEIPTS_DOTS + detailTailFeed);
+      appendFullCut(out);                              // 第一刀
+
+      // —— 第二張：工作單 ——
+      appendFeedDots(out, FEED_BEFORE_WORK_IMAGE_DOTS); // 把工作單標題從第一刀切口往下推
+      appendRasterImage(out, workRaster);
+      appendFeedDots(out, FEED_AFTER_FINAL_DOTS);       // 致謝語＋尾端留白推過裁刀
+      appendFullCut(out);                               // 第二刀
+
+      return new Uint8Array(out);
+    }
+
+    function bytesToBase64(bytes) {
+      // 大型 byte array 用 chunk 處理，避免 String.fromCharCode 的 call size 限制
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      }
+      return btoa(binary);
+    }
+
+    function buildRawBtDeepLink(escPosBytes) {
+      return "rawbt:base64," + bytesToBase64(escPosBytes);
+    }
+
+    /**
+     * 與「結帳並列印」共用：依 preparedOrder 產生 RawBT 合併 ESC/POS 並導向列印（明細 + 工作單）。
+     * 不寫入 Firestore、不清空購物車；呼叫端須先完成接單／結帳等商業邏輯。
+     */
+    async function executeRawBtMergedPrintFromPreparedOrder(preparedOrder) {
+      const detailCanvas = await renderReceiptToCanvas(preparedOrder, "detail");
+      const workCanvas = await renderReceiptToCanvas(preparedOrder, "work");
+      const combinedBytes = buildCombinedReceiptBytes(detailCanvas, workCanvas);
+      const combinedUrl = buildRawBtDeepLink(combinedBytes);
+      console.log(
+        "[RawBT] 合併包裹：高度 detail/work =",
+        detailCanvas.height,
+        "/",
+        workCanvas.height,
+        " 黑點 =",
+        countBlackPixels(detailCanvas),
+        "/",
+        countBlackPixels(workCanvas),
+        " bytes =",
+        combinedBytes.length,
+        " URL 長度 =",
+        combinedUrl.length
+      );
+      closeModal();
+      clearPrintBlockingState();
+      window.location.href = combinedUrl;
+    }
+
+    // 診斷用：數 canvas 內黑色像素，下次測試若有問題可立刻判斷 canvas 是否真的有內容
+    function countBlackPixels(canvas) {
+      const ctx = canvas.getContext("2d");
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let count = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+        if (data[i + 3] > 128 && gray < 128) count++;
+      }
+      return count;
     }
 
     async function handleCheckoutAndPrint(event) {
@@ -2588,17 +3158,24 @@
 
       try {
         await persistPreparedOrder(preparedOrder);
-        const receiptHtml = buildPassPrntReceiptHtml(preparedOrder);
-        const passprntUrl = buildPassPrntDeepLink(receiptHtml);
-        clearCart();
-        hidePrintReceiptLink();
-        resetOrderMetaFields();
-        closeModal();
-        clearPrintBlockingState();
-        window.location.href = passprntUrl;
-        alert("結帳成功，已送出列印指令。");
+
+        if (checkoutPrintBtn) checkoutPrintBtn.disabled = true;
+        if (checkoutBtn) checkoutBtn.disabled = true;
+
+        await executeRawBtMergedPrintFromPreparedOrder(preparedOrder);
+
+        setTimeout(() => {
+          clearCart();
+          hidePrintReceiptLink();
+          resetOrderMetaFields();
+          if (checkoutPrintBtn) checkoutPrintBtn.disabled = false;
+          if (checkoutBtn) checkoutBtn.disabled = false;
+          alert("結帳成功，已送出列印任務（明細單 + 工作單，含兩次切紙）。");
+        }, 1500);
       } catch (error) {
         console.error(error);
+        if (checkoutPrintBtn) checkoutPrintBtn.disabled = false;
+        if (checkoutBtn) checkoutBtn.disabled = false;
         alert("結帳失敗（雲端存檔錯誤）：" + (error && error.message ? error.message : String(error)));
         return false;
       }
@@ -3082,6 +3659,281 @@
       window.location.reload();
     }
 
+    let cloudOrdersUnsubscribe = null;
+    let cloudOrdersFirstSnapshot = true;
+    let cloudPendingOrdersSnapshots = [];
+    let acceptingCloudOrderId = null;
+    let storeStatusUnsubscribe = null;
+
+    function playNewCloudOrderChime() {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new Ctx();
+        const master = ctx.createGain();
+        master.connect(ctx.destination);
+        master.gain.setValueAtTime(0.0001, ctx.currentTime);
+        master.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 0.02);
+        master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.55);
+
+        function ding(freq, start, dur) {
+          const o = ctx.createOscillator();
+          o.type = "sine";
+          o.frequency.setValueAtTime(freq, start);
+          o.connect(master);
+          o.start(start);
+          o.stop(start + dur);
+        }
+
+        const t0 = ctx.currentTime;
+        ding(784, t0, 0.12);
+        ding(659, t0 + 0.11, 0.14);
+
+        window.setTimeout(() => {
+          try {
+            ctx.close();
+          } catch (e2) {
+            /* ignore */
+          }
+        }, 900);
+      } catch (e) {
+        console.warn("Cloud order chime skipped:", e);
+      }
+    }
+
+    function summarizeLineItemsForDisplay(lineItems) {
+      const map = {};
+      (Array.isArray(lineItems) ? lineItems : []).forEach((line) => {
+        if (!line || typeof line !== "object") return;
+        const key =
+          typeof line.name === "string" && line.name.trim() ? line.name.trim() : String(line.id || "");
+        map[key] = (map[key] || 0) + 1;
+      });
+      const parts = Object.keys(map).map((name) => name + " ×" + map[name]);
+      return parts.length ? parts.join("、") : "（無品項）";
+    }
+
+    function renderCloudPendingUi(orders) {
+      cloudPendingOrdersSnapshots = orders;
+      if (!cloudPendingBar || !cloudPendingList) return;
+      if (!orders.length) {
+        cloudPendingList.innerHTML = "";
+        cloudPendingBar.hidden = true;
+        return;
+      }
+      cloudPendingBar.hidden = false;
+      cloudPendingList.innerHTML = "";
+      orders.forEach((order) => {
+        const rawName = typeof order.customer_name === "string" ? order.customer_name.trim() : "";
+        const rawPhone = typeof order.customer_phone === "string" ? order.customer_phone.trim() : "";
+        const nameDisp = rawName ? maskCustomerNameForPrint(rawName) : "（未留姓名）";
+        const phoneDisp = rawPhone ? maskCustomerPhoneForPrint(rawPhone) : "—";
+        const pickupRaw = typeof order.pickup_time === "string" ? order.pickup_time.trim() : "";
+        const pickupLine = pickupRaw ? "<br />預計取餐：" + escapeHtml(pickupRaw) : "";
+        const card = document.createElement("div");
+        card.className = "cloud-pending-card";
+        card.innerHTML =
+          '<div class="cloud-pending-meta">顧客：' +
+          escapeHtml(nameDisp) +
+          "<br />電話：" +
+          escapeHtml(phoneDisp) +
+          pickupLine +
+          "</div>" +
+          '<div class="cloud-pending-items">' +
+          escapeHtml(summarizeLineItemsForDisplay(order.lineItems)) +
+          "</div>" +
+          '<button type="button" class="cloud-accept-btn" data-order-id="' +
+          escapeHtml(order.id) +
+          '">確認接單</button>';
+        cloudPendingList.appendChild(card);
+      });
+    }
+
+    function stopCloudPendingOrdersListener() {
+      if (typeof cloudOrdersUnsubscribe === "function") {
+        cloudOrdersUnsubscribe();
+        cloudOrdersUnsubscribe = null;
+      }
+      cloudOrdersFirstSnapshot = true;
+      renderCloudPendingUi([]);
+    }
+
+    function updateStoreAcceptingOrdersUi(isAccepting) {
+      const safeOpen = isAccepting !== false;
+      if (storeAcceptingOrdersToggle) {
+        storeAcceptingOrdersToggle.checked = safeOpen;
+      }
+      if (storeAcceptingOrdersLabel) {
+        storeAcceptingOrdersLabel.textContent = safeOpen ? "🟢 線上接單中" : "🔴 暫停接單";
+      }
+    }
+
+    async function ensureStoreStatusDocExists() {
+      if (!db) return;
+      try {
+        const ref = doc(db, CONFIG_COLLECTION, STORE_STATUS_DOC_ID);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          await setDoc(ref, { is_accepting_orders: true }, { merge: true });
+          updateStoreAcceptingOrdersUi(true);
+        }
+      } catch (e) {
+        console.warn("ensureStoreStatusDocExists:", e);
+      }
+    }
+
+    function stopStoreStatusListener() {
+      if (typeof storeStatusUnsubscribe === "function") {
+        storeStatusUnsubscribe();
+        storeStatusUnsubscribe = null;
+      }
+    }
+
+    function startStoreStatusListener() {
+      if (storeStatusUnsubscribe || !db) return;
+      const ref = doc(db, CONFIG_COLLECTION, STORE_STATUS_DOC_ID);
+      storeStatusUnsubscribe = onSnapshot(
+        ref,
+        (snap) => {
+          const open = !snap.exists() || snap.data().is_accepting_orders !== false;
+          updateStoreAcceptingOrdersUi(open);
+        },
+        (err) => {
+          console.error("店內接單狀態監聽失敗：", err);
+        }
+      );
+    }
+
+    async function persistStoreAcceptingOrders(isAccepting) {
+      await setDoc(
+        doc(db, CONFIG_COLLECTION, STORE_STATUS_DOC_ID),
+        { is_accepting_orders: !!isAccepting },
+        { merge: true }
+      );
+    }
+
+    function startCloudPendingOrdersListener() {
+      if (cloudOrdersUnsubscribe) return;
+      if (!db) return;
+      const q = query(
+        collection(db, ORDERS_COLLECTION),
+        where("status", "==", "pending"),
+        where("source", "==", CUSTOMER_ORDER_SOURCE)
+      );
+      cloudOrdersUnsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          if (!cloudOrdersFirstSnapshot) {
+            snapshot.docChanges().forEach((change) => {
+              if (change.type === "added") {
+                playNewCloudOrderChime();
+              }
+            });
+          }
+          cloudOrdersFirstSnapshot = false;
+          const todayKey = getTodayKey();
+          const list = [];
+          snapshot.forEach((docSnap) => {
+            const o = orderFromFirestoreDoc(docSnap);
+            if (!o || o.date !== todayKey) return;
+            if (o.status !== "pending" || o.source !== CUSTOMER_ORDER_SOURCE) return;
+            list.push(o);
+          });
+          list.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          renderCloudPendingUi(list);
+        },
+        (error) => {
+          console.error("雲端待接單監聽失敗：", error);
+        }
+      );
+    }
+
+    async function acceptCloudMobilePendingOrder(order) {
+      if (!order || !order.id) return;
+      if (acceptingCloudOrderId) return;
+      acceptingCloudOrderId = order.id;
+      if (cloudPendingList) {
+        cloudPendingList.querySelectorAll(".cloud-accept-btn").forEach((b) => {
+          b.disabled = true;
+        });
+      }
+
+      const newNo = issueOrderNumber();
+      try {
+        await runTransaction(db, async (transaction) => {
+          const ref = doc(db, ORDERS_COLLECTION, order.id);
+          const snap = await transaction.get(ref);
+          if (!snap.exists()) {
+            throw new Error("ORDER_NOT_FOUND");
+          }
+          const d = snap.data();
+          if (!d || d.status !== "pending" || d.source !== CUSTOMER_ORDER_SOURCE) {
+            throw new Error("ORDER_NOT_PENDING");
+          }
+          transaction.update(ref, {
+            status: "active",
+            orderNo: newNo
+          });
+        });
+      } catch (error) {
+        console.error(error);
+        const msg = error && error.message ? error.message : String(error);
+        if (msg === "ORDER_NOT_FOUND" || msg === "ORDER_NOT_PENDING") {
+          alert("此訂單不存在或已被其他人接單。");
+        } else {
+          alert("接單失敗：" + msg);
+        }
+        acceptingCloudOrderId = null;
+        if (cloudPendingList) {
+          cloudPendingList.querySelectorAll(".cloud-accept-btn").forEach((b) => {
+            b.disabled = false;
+          });
+        }
+        return;
+      }
+
+      acceptingCloudOrderId = null;
+      if (cloudPendingList) {
+        cloudPendingList.querySelectorAll(".cloud-accept-btn").forEach((b) => {
+          b.disabled = false;
+        });
+      }
+
+      const preparedOrder = {
+        snapshot: (order.lineItems || []).map((x) => ({
+          id: x.id,
+          name: x.name,
+          price: Number(x.price) || 0
+        })),
+        checkoutTime: new Date(order.timestamp),
+        orderNo: newNo,
+        tableNumber: order.table_number || DEFAULT_TABLE_NUMBER,
+        pickupTime: order.pickup_time || "",
+        isReservation: !!(typeof order.pickup_time === "string" && order.pickup_time.trim()),
+        customer_name: typeof order.customer_name === "string" ? order.customer_name : "",
+        customer_phone: typeof order.customer_phone === "string" ? order.customer_phone : ""
+      };
+
+      forceCloseUiBeforePrint();
+      try {
+        if (checkoutPrintBtn) checkoutPrintBtn.disabled = true;
+        if (checkoutBtn) checkoutBtn.disabled = true;
+        await executeRawBtMergedPrintFromPreparedOrder(preparedOrder);
+        window.setTimeout(() => {
+          if (checkoutPrintBtn) checkoutPrintBtn.disabled = false;
+          if (checkoutBtn) checkoutBtn.disabled = false;
+          alert("已接單並送出列印（明細單 + 工作單，含兩次切紙）。");
+        }, 1500);
+      } catch (printError) {
+        console.error(printError);
+        if (checkoutPrintBtn) checkoutPrintBtn.disabled = false;
+        if (checkoutBtn) checkoutBtn.disabled = false;
+        alert(
+          "訂單已轉為店内正式單，但列印失敗：" +
+            (printError && printError.message ? printError.message : String(printError))
+        );
+      }
+    }
+
     let hasBoundStaticUiEvents = false;
 
     function runAsync(handler) {
@@ -3155,6 +4007,32 @@
       });
       historyTabActive.addEventListener("click", runAsync(() => switchHistoryTab("active")));
       historyTabVoided.addEventListener("click", runAsync(() => switchHistoryTab("voided")));
+
+      if (storeAcceptingOrdersToggle) {
+        storeAcceptingOrdersToggle.addEventListener("change", () => {
+          const v = !!storeAcceptingOrdersToggle.checked;
+          updateStoreAcceptingOrdersUi(v);
+          persistStoreAcceptingOrders(v).catch((error) => {
+            console.error(error);
+            alert("更新接單狀態失敗：" + (error && error.message ? error.message : String(error)));
+            const revert = !v;
+            updateStoreAcceptingOrdersUi(revert);
+            storeAcceptingOrdersToggle.checked = revert;
+          });
+        });
+      }
+
+      if (cloudPendingList) {
+        cloudPendingList.addEventListener("click", (event) => {
+          const t = event.target;
+          if (!(t instanceof HTMLElement)) return;
+          if (!t.classList.contains("cloud-accept-btn")) return;
+          const id = t.getAttribute("data-order-id");
+          if (!id) return;
+          const targetOrder = cloudPendingOrdersSnapshots.find((o) => o.id === id);
+          if (targetOrder) void acceptCloudMobilePendingOrder(targetOrder);
+        });
+      }
 
       importDataInput.addEventListener("change", (event) => {
         const target = event.target;
@@ -3335,7 +4213,17 @@
         setLoginError("");
         loginOverlayEl.classList.add("is-hidden");
         posWorkspaceEl.hidden = false;
+        ensureProductsSeededIfEmpty().catch((err) => {
+          console.warn("自動建立 products 菜單略過或失敗（請確認已部署 Firestore 規則並允許已登入者寫入 products）：", err);
+        });
+        ensureStoreStatusDocExists().catch((err) => {
+          console.warn("接單狀態文件略過或失敗：", err);
+        });
+        startStoreStatusListener();
+        startCloudPendingOrdersListener();
       } else {
+        stopCloudPendingOrdersListener();
+        stopStoreStatusListener();
         posWorkspaceEl.hidden = true;
         loginOverlayEl.classList.remove("is-hidden");
         if (loginPasswordEl) loginPasswordEl.value = "";

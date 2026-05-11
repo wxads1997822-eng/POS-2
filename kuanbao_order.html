@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Kuanbao · 外帶點餐</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, "Segoe UI", "Noto Sans TC", sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+    body.success-open { overflow: hidden; }
+
+    .pause-order-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(15, 23, 42, 0.94);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .pause-order-overlay[hidden] {
+      display: none !important;
+    }
+    .pause-order-text {
+      font-size: max(1.5rem, 5.5vw);
+      font-weight: 900;
+      line-height: 1.5;
+      color: #fecaca;
+      max-width: 22rem;
+      margin: 0;
+    }
+
+    select.text-in {
+      cursor: pointer;
+      appearance: auto;
+    }
+
+    .page-scroll {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 16px 14px calc(140px + env(safe-area-inset-bottom, 0px));
+    }
+
+    h1 {
+      font-size: clamp(1.35rem, 4.5vw, 1.65rem);
+      font-weight: 800;
+      margin: 0 0 8px;
+    }
+    .lead {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin: 0 0 18px;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 14px;
+      padding: 14px 14px 8px;
+      margin-bottom: 14px;
+      border: 1px solid #334155;
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #e2e8f0;
+    }
+
+    .menu-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #334155;
+    }
+    .menu-row:last-child { border-bottom: none; }
+
+    .menu-main {
+      flex: 1 1 55%;
+      min-width: 0;
+    }
+    .menu-name {
+      font-size: max(20px, 1.15rem);
+      font-weight: 800;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+    .menu-price {
+      margin-top: 6px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fde68a;
+    }
+
+    .qty-controls {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .qty-btn {
+      min-width: 52px;
+      min-height: 52px;
+      border-radius: 12px;
+      border: 2px solid #64748b;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 1.65rem;
+      font-weight: 800;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .qty-btn:active { background: #334155; }
+    .qty-val {
+      min-width: 40px;
+      text-align: center;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 1.25rem;
+      font-weight: 800;
+      padding: 12px 0 4px;
+    }
+    .total-row span:last-child { color: #fde68a; }
+
+    .field {
+      display: block;
+      margin-bottom: 14px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #cbd5e1;
+    }
+    .field .hint {
+      display: block;
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    .text-in {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px 12px;
+      font-size: 1.2rem;
+      border-radius: 12px;
+      border: 2px solid #475569;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    .text-in:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+
+    .empty-menu {
+      text-align: center;
+      padding: 24px 10px;
+      font-size: 1.05rem;
+      color: #94a3b8;
+      line-height: 1.55;
+    }
+
+    .bottom-dock {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      width: 100%;
+      padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+      background: #0f172a;
+      border-top: 1px solid #334155;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 16px 14px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      border: none;
+      border-radius: 14px;
+      background: #0ea5e9;
+      color: #0f172a;
+      cursor: pointer;
+    }
+    .submit-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .dock-msg {
+      margin: 10px 0 0;
+      font-size: 0.98rem;
+      line-height: 1.45;
+      min-height: 1.45em;
+      color: #fca5a5;
+    }
+    .dock-msg--error { color: #fca5a5; }
+
+    #successOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    #successOverlay[hidden] { display: none !important; }
+    .success-panel {
+      max-width: 420px;
+      background: #1e293b;
+      border: 2px solid #38bdf8;
+      border-radius: 18px;
+      padding: 28px 22px 22px;
+    }
+    .success-text {
+      font-size: max(22px, clamp(1.35rem, 5vw, 1.85rem));
+      font-weight: 800;
+      line-height: 1.55;
+      color: #f8fafc;
+      margin: 0 0 22px;
+    }
+    .success-btn {
+      min-height: 48px;
+      padding: 0 20px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      border-radius: 12px;
+      border: none;
+      background: #0ea5e9;
+      color: #0f172a;
+      cursor: pointer;
+    }
+
+    #orderTrackPanel {
+      display: none;
+      padding: 8px 0 24px;
+    }
+    body.mode-order-tracking #orderBrowsePanel {
+      display: none !important;
+    }
+    body.mode-order-tracking #orderTrackPanel {
+      display: block !important;
+    }
+    body.mode-order-tracking #bottomDock {
+      display: none !important;
+    }
+
+    .order-track-status {
+      border-radius: 16px;
+      padding: 22px 18px;
+      margin-bottom: 16px;
+      font-size: max(1.25rem, 4.2vw);
+      font-weight: 900;
+      line-height: 1.55;
+      text-align: center;
+      border: 3px solid transparent;
+    }
+    .order-track-status--pending {
+      background: linear-gradient(145deg, #78350f 0%, #ea580c 100%);
+      color: #fffbeb;
+      border-color: #fdba74;
+    }
+    .order-track-status--active {
+      background: linear-gradient(145deg, #14532d 0%, #16a34a 100%);
+      color: #ecfdf5;
+      border-color: #86efac;
+    }
+    .order-track-status--cancel {
+      background: linear-gradient(145deg, #7f1d1d 0%, #b91c1c 100%);
+      color: #fef2f2;
+      border-color: #fca5a5;
+    }
+
+    .order-track-detail {
+      font-size: max(1.1rem, 3.8vw);
+      font-weight: 700;
+      line-height: 1.55;
+      color: #e2e8f0;
+      text-align: center;
+      margin: 0 0 20px;
+    }
+
+    .order-track-actions {
+      margin-top: 8px;
+    }
+    .order-track-dismiss {
+      width: 100%;
+      min-height: 54px;
+      padding: 14px 16px;
+      font-size: 1.15rem;
+      font-weight: 800;
+      border: none;
+      border-radius: 14px;
+      background: #38bdf8;
+      color: #0f172a;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="pauseOrderOverlay" class="pause-order-overlay" hidden>
+    <p class="pause-order-text">目前忙碌中，暫停線上點餐</p>
+  </div>
+
+  <div id="successOverlay" hidden>
+    <div class="success-panel">
+      <p class="success-text" role="status" aria-live="assertive"></p>
+      <button type="button" class="success-btn" id="successDismissBtn">關閉</button>
+    </div>
+  </div>
+
+  <div class="page-scroll">
+    <div id="orderBrowsePanel">
+      <h1>Kuanbao 外帶點餐</h1>
+      <p class="lead">純文字點餐，到店付款。請選擇品項後填寫聯絡方式，再按底部按鈕送出。</p>
+
+      <section class="card">
+        <h2>菜單</h2>
+        <div id="menuList" class="empty-menu">載入中…</div>
+      </section>
+
+      <section class="card">
+        <h2>合計</h2>
+        <div class="total-row">
+          <span>預估金額</span>
+          <span id="cartTotal">$0</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>顧客資訊（必填）</h2>
+        <label class="field" for="custName">姓名
+          <input class="text-in" id="custName" type="text" autocomplete="name" maxlength="40" placeholder="請輸入姓名" />
+        </label>
+        <label class="field" for="custPhone">手機號碼
+          <span class="hint">09 開頭共 10 碼（例：0912345678）</span>
+          <input class="text-in" id="custPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="09xxxxxxxx" />
+        </label>
+        <label class="field" for="pickupTimeSelect">預計取餐時間
+          <span class="hint">由現在起算 15 分鐘後起，每 15 分鐘一個時段</span>
+          <select class="text-in" id="pickupTimeSelect"></select>
+        </label>
+      </section>
+    </div>
+
+    <section id="orderTrackPanel" class="card" aria-live="polite">
+      <h2 style="font-size:1.2rem;margin:0 0 14px;">訂單狀態追蹤</h2>
+      <div id="orderTrackStatusBox" class="order-track-status order-track-status--pending" role="status"></div>
+      <p id="orderTrackDetail" class="order-track-detail"></p>
+      <div class="order-track-actions">
+        <button type="button" class="order-track-dismiss" id="orderTrackDismissBtn">再點一單 / 返回菜單</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="bottom-dock" id="bottomDock">
+    <button type="button" class="submit-btn" id="submitBtn" disabled>送出訂單（到店付款）</button>
+    <p class="dock-msg" id="formMsg" aria-live="polite"></p>
+  </div>
+
+  <script type="module" src="kuanbao_order.js"></script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 訪客送單：強制 pending + 來源標記 + 到店付款 + 欄位白名單 + 基本防刷欄位檢查
+    function isCustomerPendingMobileOrder() {
+      let d = request.resource.data;
+      return request.auth == null
+        && d.keys().hasOnly([
+          'date',
+          'month',
+          'total',
+          'itemCounts',
+          'timestamp',
+          'orderNo',
+          'table_number',
+          'pickup_time',
+          'status',
+          'lineItems',
+          'is_daily_cleared',
+          'source',
+          'customer_name',
+          'customer_phone',
+          'payment_method',
+          'shop_name'
+        ])
+        && d.status == 'pending'
+        && d.source == 'customer_mobile'
+        && d.payment_method == 'pay_at_store'
+        && d.is_daily_cleared == false
+        && d.orderNo == 0
+        && d.table_number == '線上外帶'
+        && d.pickup_time is string
+        && d.pickup_time.size() <= 80
+        && d.date is string
+        && d.date.size() == 10
+        && d.month is string
+        && d.month.size() == 7
+        && d.timestamp is timestamp
+        && d.customer_name is string
+        && d.customer_name.size() >= 1
+        && d.customer_name.size() <= 40
+        && d.customer_phone is string
+        && d.customer_phone.matches('^09[0-9]{8}$')
+        && d.shop_name is string
+        && d.shop_name.size() >= 1
+        && d.shop_name.size() <= 40
+        && d.lineItems is list
+        && d.lineItems.size() >= 1
+        && d.lineItems.size() <= 120
+        && d.itemCounts is map
+        && d.itemCounts.size() >= 1
+        && d.itemCounts.size() <= 80
+        && d.total is number
+        && d.total >= -10000
+        && d.total <= 1000000;
+    }
+
+    // 線上點餐頁需匿名讀取；僅已登入店內帳號可維護菜單
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    match /orders/{orderId} {
+
+      // 單筆讀取：店內已登入者任意訂單；訪客僅可讀取手機點餐單（含 onSnapshot 刪除後之空讀取）
+      allow get: if request.auth != null
+        || !exists(/d/$(database)/documents/orders/$(orderId))
+        || resource.data.source == 'customer_mobile';
+
+      // 列表／查詢：僅店內已登入（避免訪客掃描整個 orders）
+      allow list: if request.auth != null;
+
+      allow update, delete: if request.auth != null;
+
+      // 新增訂單：
+      // A) 訪客：僅允許「手機點餐」待確認單，欄位與狀態需完全符合 isCustomerPendingMobileOrder
+      // B) 店內：僅允許建立 status 為 active 的正式單
+      allow create: if isCustomerPendingMobileOrder()
+        || (request.auth != null && request.resource.data.status == 'active');
+    }
+
+    // 線上接單開關：訪客可讀；僅店內已登入者可更新
+    match /config/{docId} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+        && docId == 'store_status'
+        && request.resource.data.keys().hasOnly(['is_accepting_orders'])
+        && request.resource.data.is_accepting_orders is bool;
+      allow delete: if false;
+    }
+
+    // 其他集合預設拒絕（之後若有新集合請在此明確放行）
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

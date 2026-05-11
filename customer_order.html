@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Kuanbao · 線上點餐</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, "Segoe UI", "Noto Sans TC", sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+    main {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 16px 14px 120px;
+    }
+    h1 {
+      font-size: 1.55rem;
+      font-weight: 800;
+      margin: 0 0 6px;
+      letter-spacing: 0.02em;
+    }
+    .sub {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      margin-bottom: 20px;
+      line-height: 1.45;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 14px;
+      padding: 14px 14px 16px;
+      margin-bottom: 14px;
+      border: 1px solid #334155;
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #e2e8f0;
+    }
+    .menu-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px 12px;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid #334155;
+      font-size: 1.15rem;
+      line-height: 1.35;
+    }
+    .menu-row:last-child { border-bottom: none; }
+    .menu-name { font-weight: 700; }
+    .menu-price {
+      color: #fde68a;
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+    .qty-bar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .qty-btn {
+      min-width: 52px;
+      min-height: 52px;
+      border-radius: 12px;
+      border: 2px solid #64748b;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 1.6rem;
+      font-weight: 800;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .qty-btn:active { background: #334155; }
+    .qty-val {
+      min-width: 36px;
+      text-align: center;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+    label.field {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #cbd5e1;
+    }
+    label.field span.hint {
+      display: block;
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    input.text-in {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px 12px;
+      font-size: 1.2rem;
+      border-radius: 12px;
+      border: 2px solid #475569;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    input.text-in:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+    .pay-note {
+      font-size: 1.1rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      margin: 0;
+    }
+    .total-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 2px solid #475569;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+    .total-bar span:last-child { color: #fde68a; }
+    .submit-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 16px;
+      font-size: 1.25rem;
+      font-weight: 800;
+      border: none;
+      border-radius: 14px;
+      background: #0ea5e9;
+      color: #0f172a;
+      cursor: pointer;
+    }
+    .submit-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .msg {
+      margin-top: 10px;
+      font-size: 1rem;
+      line-height: 1.45;
+      color: #fca5a5;
+      min-height: 1.45em;
+    }
+    .msg.ok { color: #86efac; }
+    .loading {
+      text-align: center;
+      padding: 28px 12px;
+      font-size: 1.15rem;
+      color: #94a3b8;
+    }
+    .empty-menu {
+      text-align: center;
+      padding: 20px 8px;
+      font-size: 1.05rem;
+      color: #94a3b8;
+      line-height: 1.55;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Kuanbao 外帶點餐</h1>
+    <p class="sub">請選擇品項與數量，填寫聯絡資料後送出。付款方式為<strong>到店付款</strong>（不提供線上付款）。</p>
+
+    <section class="card" id="menuCard">
+      <h2>菜單</h2>
+      <div id="menuList" class="loading">載入菜單中…</div>
+    </section>
+
+    <section class="card">
+      <h2>聯絡資料</h2>
+      <label class="field" for="custName">
+        姓名（必填）
+        <input class="text-in" id="custName" type="text" autocomplete="name" maxlength="40" placeholder="請輸入姓名" />
+      </label>
+      <label class="field" for="custPhone">
+        手機號碼（必填）
+        <span class="hint">請填寫台灣手機號碼，例如：0912345678</span>
+        <input class="text-in" id="custPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="09xxxxxxxx" />
+      </label>
+      <p class="pay-note">付款方式：<strong>到店付款</strong></p>
+      <div class="total-bar">
+        <span>預估合計</span>
+        <span id="cartTotal">$0</span>
+      </div>
+      <button type="button" class="submit-btn" id="submitBtn" disabled>送出訂單</button>
+      <p class="msg" id="formMsg" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      addDoc,
+      Timestamp,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-9cqAyRjtUxbJhV95o5Y203oOhc3Twew",
+      authDomain: "guanbao-pos.firebaseapp.com",
+      projectId: "guanbao-pos",
+      storageBucket: "guanbao-pos.firebasestorage.app",
+      messagingSenderId: "1032609415697",
+      appId: "1:1032609415697:web:d39485dd3df274606a67b0",
+      measurementId: "G-0F3DDD34K1"
+    };
+
+    const ORDERS_COLLECTION = "orders";
+    const PRODUCTS_COLLECTION = "products";
+    const COOLDOWN_MS = 5 * 60 * 1000;
+    const COOLDOWN_STORAGE_KEY = "customer_order_last_submit_ts_v1";
+    const DEFAULT_TABLE_LABEL = "線上外帶";
+    const SHOP_NAME = "Kuanbao";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const menuList = document.getElementById("menuList");
+    const submitBtn = document.getElementById("submitBtn");
+    const cartTotalEl = document.getElementById("cartTotal");
+    const formMsg = document.getElementById("formMsg");
+    const custName = document.getElementById("custName");
+    const custPhone = document.getElementById("custPhone");
+
+    /** @type {{ id: string, name: string, price: number, discount?: boolean }[]} */
+    let products = [];
+    /** @type {Record<string, number>} */
+    let quantities = {};
+
+    function formatMoney(n) {
+      return "$" + Math.round(n);
+    }
+
+    function isCooldownActive() {
+      try {
+        const raw = localStorage.getItem(COOLDOWN_STORAGE_KEY);
+        if (!raw) return false;
+        const ts = Number(raw);
+        if (!Number.isFinite(ts)) return false;
+        return Date.now() - ts < COOLDOWN_MS;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function cooldownRemainingSec() {
+      try {
+        const raw = localStorage.getItem(COOLDOWN_STORAGE_KEY);
+        const ts = Number(raw);
+        if (!Number.isFinite(ts)) return 0;
+        const left = COOLDOWN_MS - (Date.now() - ts);
+        return Math.max(0, Math.ceil(left / 1000));
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    function markSubmittedNow() {
+      try {
+        localStorage.setItem(COOLDOWN_STORAGE_KEY, String(Date.now()));
+      } catch (e) {
+        /* ignore */
+      }
+    }
+
+    function normalizeProductDoc(docSnap) {
+      const data = docSnap.data();
+      if (!data || typeof data !== "object") return null;
+      if (data.enabled === false) return null;
+      const name = typeof data.name === "string" ? data.name.trim() : "";
+      const price = Number(data.price);
+      if (!name || !Number.isFinite(price)) return null;
+      const id = typeof data.id === "string" && data.id.trim() ? data.id.trim() : docSnap.id;
+      const sortOrder = Number(data.sortOrder);
+      return {
+        id,
+        name,
+        price,
+        discount: data.discount === true,
+        sortOrder: Number.isFinite(sortOrder) ? sortOrder : 1e9
+      };
+    }
+
+    async function loadProducts() {
+      let snap;
+      try {
+        const q = query(collection(db, PRODUCTS_COLLECTION), orderBy("sortOrder", "asc"));
+        snap = await getDocs(q);
+      } catch (errOrder) {
+        try {
+          snap = await getDocs(collection(db, PRODUCTS_COLLECTION));
+        } catch (err) {
+          console.error(err);
+          menuList.className = "empty-menu";
+          menuList.innerHTML =
+            "無法載入菜單（Firestore）。請確認已建立 <strong>products</strong> 集合，且安全規則允許匿名讀取；若使用 <code>orderBy('sortOrder')</code>，請在 Firebase 主控台建立對應的複合索引。";
+          return;
+        }
+      }
+
+      const list = [];
+      snap.forEach((docSnap) => {
+        const p = normalizeProductDoc(docSnap);
+        if (p) list.push(p);
+      });
+      products = list.sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+        return a.name.localeCompare(b.name, "zh-Hant");
+      });
+      if (products.length === 0) {
+        menuList.className = "empty-menu";
+        menuList.textContent =
+          "菜單尚無品項。請在 Firestore 的 products 集合新增文件（欄位：name、price；選用：id、sortOrder、enabled）。";
+        syncSubmitState();
+        return;
+      }
+      renderMenu();
+      syncSubmitState();
+    }
+
+    function renderMenu() {
+      menuList.className = "";
+      menuList.innerHTML = "";
+      products.forEach((p) => {
+        const qty = quantities[p.id] || 0;
+        const row = document.createElement("div");
+        row.className = "menu-row";
+        row.innerHTML =
+          '<div><div class="menu-name"></div><div class="menu-price"></div></div>' +
+          '<div class="qty-bar">' +
+          '<button type="button" class="qty-btn" data-act="minus" data-id="' +
+          escapeAttr(p.id) +
+          '">−</button>' +
+          '<span class="qty-val">' +
+          qty +
+          "</span>" +
+          '<button type="button" class="qty-btn" data-act="plus" data-id="' +
+          escapeAttr(p.id) +
+          '">+</button>' +
+          "</div>";
+        row.querySelector(".menu-name").textContent = p.name;
+        row.querySelector(".menu-price").textContent = formatMoney(p.price);
+        menuList.appendChild(row);
+      });
+
+      menuList.querySelectorAll(".qty-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          const act = btn.getAttribute("data-act");
+          if (!id) return;
+          const cur = quantities[id] || 0;
+          if (act === "plus") quantities[id] = cur + 1;
+          if (act === "minus") quantities[id] = Math.max(0, cur - 1);
+          renderMenu();
+          updateTotal();
+          syncSubmitState();
+        });
+      });
+    }
+
+    function escapeAttr(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    function cartTotal() {
+      let sum = 0;
+      products.forEach((p) => {
+        const q = quantities[p.id] || 0;
+        sum += p.price * q;
+      });
+      return sum;
+    }
+
+    function updateTotal() {
+      cartTotalEl.textContent = formatMoney(cartTotal());
+    }
+
+    function buildLineItemsAndCounts() {
+      const itemCounts = {};
+      const lineItems = [];
+      products.forEach((p) => {
+        const q = quantities[p.id] || 0;
+        if (q <= 0) return;
+        itemCounts[p.id] = q;
+        for (let i = 0; i < q; i += 1) {
+          lineItems.push({ id: p.id, name: p.name, price: p.price });
+        }
+      });
+      return { itemCounts, lineItems };
+    }
+
+    function validatePhoneTw(tel) {
+      const t = String(tel).trim();
+      return /^09\d{8}$/.test(t);
+    }
+
+    function getTodayKey(d) {
+      const t = d || new Date();
+      const y = t.getFullYear();
+      const m = String(t.getMonth() + 1).padStart(2, "0");
+      const day = String(t.getDate()).padStart(2, "0");
+      return y + "-" + m + "-" + day;
+    }
+
+    function getMonthKey(d) {
+      const t = d || new Date();
+      const y = t.getFullYear();
+      const m = String(t.getMonth() + 1).padStart(2, "0");
+      return y + "-" + m;
+    }
+
+    function syncSubmitState() {
+      const { lineItems } = buildLineItemsAndCounts();
+      const hasItems = lineItems.length > 0;
+      const nameOk = custName.value.trim().length > 0;
+      const phoneOk = validatePhoneTw(custPhone.value);
+      const menuOk = products.length > 0;
+      const cd = isCooldownActive();
+      submitBtn.disabled = !hasItems || !nameOk || !phoneOk || !menuOk || cd;
+      if (cd) {
+        const sec = cooldownRemainingSec();
+        formMsg.className = "msg";
+        formMsg.textContent = "同一裝置須間隔 5 分鐘才能再送單，約剩 " + sec + " 秒。（IP 限制需由後端或 Security Rules 另行設定）";
+      } else if (!menuOk) {
+        formMsg.textContent = "";
+      } else {
+        formMsg.textContent = "";
+      }
+    }
+
+    function setMsg(text, ok) {
+      formMsg.textContent = text || "";
+      formMsg.className = ok ? "msg ok" : "msg";
+    }
+
+    async function submitOrder() {
+      formMsg.className = "msg";
+      formMsg.textContent = "";
+
+      const name = custName.value.trim();
+      const phone = custPhone.value.trim();
+      if (!name) {
+        setMsg("請填寫姓名。");
+        return;
+      }
+      if (!validatePhoneTw(phone)) {
+        setMsg("請填寫有效的台灣手機號碼（10 碼，09 開頭）。");
+        return;
+      }
+
+      if (isCooldownActive()) {
+        setMsg("送出過於頻繁，請稍後再試（同一裝置 5 分鐘內僅能送出一單）。");
+        return;
+      }
+
+      const { itemCounts, lineItems } = buildLineItemsAndCounts();
+      if (lineItems.length === 0) {
+        setMsg("請至少選擇一項商品。");
+        return;
+      }
+
+      const now = new Date();
+      const total = lineItems.reduce((s, it) => s + it.price, 0);
+
+      submitBtn.disabled = true;
+      try {
+        await addDoc(collection(db, ORDERS_COLLECTION), {
+          date: getTodayKey(now),
+          month: getMonthKey(now),
+          total,
+          itemCounts,
+          timestamp: Timestamp.fromDate(now),
+          orderNo: 0,
+          table_number: DEFAULT_TABLE_LABEL,
+          pickup_time: "",
+          status: "pending",
+          lineItems,
+          is_daily_cleared: false,
+          source: "customer_mobile",
+          customer_name: name,
+          customer_phone: phone,
+          payment_method: "pay_at_store",
+          shop_name: SHOP_NAME
+        });
+        markSubmittedNow();
+        quantities = {};
+        renderMenu();
+        updateTotal();
+        custName.value = "";
+        custPhone.value = "";
+        setMsg("已送出，訂單狀態為「待確認」，店家確認後會與您聯繫。", true);
+      } catch (err) {
+        console.error(err);
+        setMsg("送出失敗：" + (err && err.message ? err.message : String(err)) + "（請檢查 Firestore 是否允許建立訂單）");
+      } finally {
+        syncSubmitState();
+      }
+    }
+
+    custName.addEventListener("input", syncSubmitState);
+    custPhone.addEventListener("input", syncSubmitState);
+    submitBtn.addEventListener("click", () => {
+      submitOrder().catch((e) => {
+        console.error(e);
+        setMsg("送出失敗，請稍後再試。");
+        syncSubmitState();
+      });
+    });
+
+    setInterval(() => {
+      if (isCooldownActive()) syncSubmitState();
+    }, 1000);
+
+    updateTotal();
+    loadProducts();
+  </script>
+</body>
+</html>
